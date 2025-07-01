@@ -29,10 +29,15 @@
             { id: 7, name: '協力講堂' }
           ]);
 
-          // 借用記錄 - 使用 localStorage 儲存
+          // 借用記錄 - 使用 localStorage 儲存，加強錯誤處理
           const [bookings, setBookings] = useState(() => {
-            const saved = localStorage.getItem('meetingRoomBookings');
-            return saved ? JSON.parse(saved) : [];
+            try {
+              const saved = localStorage.getItem('meetingRoomBookings');
+              return saved ? JSON.parse(saved) : [];
+            } catch (error) {
+              console.error('讀取儲存資料失敗:', error);
+              return [];
+            }
           });
           
           // 表單資料 - 從 URL 參數自動填入會議室
@@ -64,9 +69,15 @@
           const [recordView, setRecordView] = useState('current');
           const [selectedBookings, setSelectedBookings] = useState([]);
 
-          // 儲存到 localStorage
+          // 儲存到 localStorage - 加強版本
           React.useEffect(() => {
-            localStorage.setItem('meetingRoomBookings', JSON.stringify(bookings));
+            try {
+              localStorage.setItem('meetingRoomBookings', JSON.stringify(bookings));
+              console.log('資料已儲存，共', bookings.length, '筆記錄');
+            } catch (error) {
+              console.error('儲存資料失敗:', error);
+              alert('⚠️ 資料儲存失敗，請檢查瀏覽器設定或清除瀏覽器資料後重試');
+            }
           }, [bookings]);
 
           // 處理登入表單輸入
@@ -100,14 +111,17 @@
             }));
           };
 
-          // 使用者借用提交
+          // 使用者借用提交 - 加強版本
           const handleUserBookingSubmit = () => {
+            console.log('開始處理借用申請...');
+            
             if (!formData.roomId || !formData.borrower || !formData.extension || !formData.date || !formData.startTime) {
               alert('請填寫所有必填欄位！');
               return;
             }
 
             const selectedRoom = rooms.find(room => room.id === parseInt(formData.roomId));
+            console.log('選擇的會議室:', selectedRoom);
             
             const hasConflict = bookings.some(booking => 
               booking.roomId === parseInt(formData.roomId) &&
@@ -133,7 +147,31 @@
               bookingTime: new Date().toLocaleString()
             };
 
-            setBookings([...bookings, newBooking]);
+            console.log('新增借用記錄:', newBooking);
+
+            try {
+              const newBookings = [...bookings, newBooking];
+              setBookings(newBookings);
+              console.log('借用記錄已更新，總共', newBookings.length, '筆');
+              
+              // 立即驗證是否儲存成功
+              setTimeout(() => {
+                const savedData = localStorage.getItem('meetingRoomBookings');
+                const parsedData = savedData ? JSON.parse(savedData) : [];
+                console.log('驗證儲存結果:', parsedData.length, '筆記錄');
+                
+                if (parsedData.length > bookings.length) {
+                  alert('🎉 借用成功！\n\n會議室已為您保留，請到櫃台索取鑰匙。\n\n記錄ID: ' + newBooking.id);
+                } else {
+                  alert('⚠️ 借用成功但資料可能未正確儲存，請截圖此訊息給管理員\n\n記錄ID: ' + newBooking.id);
+                }
+              }, 100);
+              
+            } catch (error) {
+              console.error('新增記錄失敗:', error);
+              alert('❌ 借用失敗，請重試或聯絡管理員');
+              return;
+            }
             
             setFormData({
               roomId: '',
@@ -142,8 +180,6 @@
               date: '',
               startTime: ''
             });
-
-            alert('🎉 借用成功！\n\n會議室已為您保留，請到櫃台索取鑰匙。');
           };
 
           // 管理員功能
@@ -405,23 +441,35 @@
           return (
             <div className="min-h-screen bg-gray-50 p-4">
               <div className="max-w-7xl mx-auto">
-                {/* 管理員標題 */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h1 className="text-3xl font-bold text-gray-800">
-                        🛠️ 會議室管理後台
-                      </h1>
-                      <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
+                    {/* 管理員標題 */}
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h1 className="text-3xl font-bold text-gray-800">
+                            🛠️ 會議室管理後台
+                          </h1>
+                          <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              const data = localStorage.getItem('meetingRoomBookings');
+                              console.log('目前儲存的資料:', data);
+                              alert('資料已輸出到 Console，請按 F12 查看');
+                            }}
+                            className="bg-yellow-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-yellow-600 transition-colors"
+                          >
+                            🔍 檢查資料
+                          </button>
+                          <button
+                            onClick={() => setSystemMode('user')}
+                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                          >
+                            👤 切換到使用者介面
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => setSystemMode('user')}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      👤 切換到使用者介面
-                    </button>
-                  </div>
-                </div>
 
                 {/* 記錄管理頁面 */}
                 <div className="bg-white rounded-lg shadow-md p-6">
