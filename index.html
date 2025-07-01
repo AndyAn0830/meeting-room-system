@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -83,6 +82,7 @@
             
             return {
               roomId: roomParam || '',
+              department: '',
               borrower: '',
               extension: '',
               date: '',
@@ -104,6 +104,17 @@
           const [adminView, setAdminView] = useState('records');
           const [recordView, setRecordView] = useState('current');
           const [selectedBookings, setSelectedBookings] = useState([]);
+          
+          // 手動新增記錄的表單
+          const [showManualAdd, setShowManualAdd] = useState(false);
+          const [manualFormData, setManualFormData] = useState({
+            roomId: '',
+            department: '',
+            borrower: '',
+            extension: '',
+            date: '',
+            startTime: ''
+          });
 
           // 儲存到 localStorage - 加強版本
           React.useEffect(() => {
@@ -147,11 +158,11 @@
             }));
           };
 
-          // 使用者借用提交 - 加強版本
+          // 使用者借用提交 - 改良版，加入通知功能
           const handleUserBookingSubmit = () => {
             console.log('開始處理借用申請...');
             
-            if (!formData.roomId || !formData.borrower || !formData.extension || !formData.date || !formData.startTime) {
+            if (!formData.roomId || !formData.department || !formData.borrower || !formData.extension || !formData.date || !formData.startTime) {
               alert('請填寫所有必填欄位！');
               return;
             }
@@ -175,12 +186,14 @@
               id: Date.now(),
               roomId: parseInt(formData.roomId),
               roomName: selectedRoom.name,
+              department: formData.department,
               borrower: formData.borrower,
               extension: formData.extension,
               date: formData.date,
               startTime: formData.startTime,
               status: '借用中',
-              bookingTime: new Date().toLocaleString()
+              bookingTime: new Date().toLocaleString(),
+              deviceType: window.innerWidth > 768 ? 'desktop' : 'mobile'
             };
 
             console.log('新增借用記錄:', newBooking);
@@ -197,7 +210,7 @@
                 console.log('驗證儲存結果:', parsedData.length, '筆記錄');
                 
                 if (parsedData.length > bookings.length) {
-                  alert('🎉 借用成功！\n\n會議室已為您保留，請到櫃台索取鑰匙。\n\n記錄ID: ' + newBooking.id);
+                  alert(`🎉 借用成功！\n\n✅ 會議室：${selectedRoom.name}\n🏢 借用單位：${formData.department}\n👤 借用人：${formData.borrower}\n📞 分機：${formData.extension}\n📅 日期：${formData.date}\n⏰ 時間：${formData.startTime}\n\n請到櫃台索取鑰匙，並告知工作人員您的借用資訊。\n\n記錄ID: ${newBooking.id}`);
                 } else {
                   alert('⚠️ 借用成功但資料可能未正確儲存，請截圖此訊息給管理員\n\n記錄ID: ' + newBooking.id);
                 }
@@ -211,6 +224,7 @@
             
             setFormData({
               roomId: '',
+              department: '',
               borrower: '',
               extension: '',
               date: '',
@@ -248,6 +262,62 @@
             setBookings(newBookings);
             setSelectedBookings([]);
             alert(`已歸還 ${selectedBookings.length} 筆記錄！`);
+          };
+
+          // 手動新增記錄功能
+          const handleManualInputChange = (e) => {
+            const { name, value } = e.target;
+            setManualFormData(prev => ({
+              ...prev,
+              [name]: value
+            }));
+          };
+
+          const handleManualAdd = () => {
+            if (!manualFormData.roomId || !manualFormData.department || !manualFormData.borrower || !manualFormData.extension || !manualFormData.date || !manualFormData.startTime) {
+              alert('請填寫所有必填欄位！');
+              return;
+            }
+
+            const selectedRoom = rooms.find(room => room.id === parseInt(manualFormData.roomId));
+            
+            const hasConflict = bookings.some(booking => 
+              booking.roomId === parseInt(manualFormData.roomId) &&
+              booking.date === manualFormData.date &&
+              booking.startTime === manualFormData.startTime &&
+              booking.status === '借用中'
+            );
+
+            if (hasConflict) {
+              alert('該會議室在此時間已被預約！請選擇其他時間。');
+              return;
+            }
+
+            const newBooking = {
+              id: Date.now(),
+              roomId: parseInt(manualFormData.roomId),
+              roomName: selectedRoom.name,
+              department: manualFormData.department,
+              borrower: manualFormData.borrower,
+              extension: manualFormData.extension,
+              date: manualFormData.date,
+              startTime: manualFormData.startTime,
+              status: '借用中',
+              bookingTime: new Date().toLocaleString(),
+              deviceType: 'manual-admin'
+            };
+
+            setBookings([...bookings, newBooking]);
+            setManualFormData({
+              roomId: '',
+              department: '',
+              borrower: '',
+              extension: '',
+              date: '',
+              startTime: ''
+            });
+            setShowManualAdd(false);
+            alert('手動記錄新增成功！');
           };
 
           // 使用者介面（前台）
@@ -315,6 +385,21 @@
                             </option>
                           ))}
                         </select>
+                      </div>
+
+                      {/* 借用單位 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          🏢 借用單位 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="department"
+                          value={formData.department}
+                          onChange={handleInputChange}
+                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
+                          placeholder="請輸入單位名稱"
+                        />
                       </div>
 
                       {/* 借用人 */}
@@ -486,12 +571,18 @@
                           </h1>
                           <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={showSyncInfo}
                             className="bg-yellow-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-yellow-600 transition-colors"
                           >
                             📱💻 同步說明
+                          </button>
+                          <button
+                            onClick={() => setShowManualAdd(true)}
+                            className="bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors"
+                          >
+                            ➕ 手動新增
                           </button>
                           <button
                             onClick={exportData}
@@ -608,6 +699,9 @@
                                 {/* 借用人資訊 */}
                                 <div>
                                   <div className="font-medium text-gray-800">
+                                    🏢 {booking.department}
+                                  </div>
+                                  <div className="font-medium text-gray-800">
                                     👤 {booking.borrower}
                                   </div>
                                   <div className="text-gray-600 text-sm">
@@ -653,6 +747,138 @@
                     );
                   })()}
                 </div>
+
+                {/* 手動新增記錄彈窗 */}
+                {showManualAdd && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-md">
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-center text-gray-800 mb-6">
+                          ➕ 手動新增借用記錄
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4 text-center">
+                          如果同事用手機借用但記錄沒同步，可在此手動新增
+                        </p>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              🏠 會議室 <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              name="roomId"
+                              value={manualFormData.roomId}
+                              onChange={handleManualInputChange}
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                            >
+                              <option value="">請選擇會議室</option>
+                              {rooms.map(room => (
+                                <option key={room.id} value={room.id}>
+                                  {room.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              🏢 借用單位 <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="department"
+                              value={manualFormData.department}
+                              onChange={handleManualInputChange}
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                              placeholder="請輸入單位名稱"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              👤 借用人 <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="borrower"
+                              value={manualFormData.borrower}
+                              onChange={handleManualInputChange}
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                              placeholder="請輸入借用人姓名"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              📞 分機號碼 <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="extension"
+                              value={manualFormData.extension}
+                              onChange={handleManualInputChange}
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                              placeholder="請輸入分機號碼"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                📅 日期 <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="date"
+                                name="date"
+                                value={manualFormData.date}
+                                onChange={handleManualInputChange}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                ⏰ 時間 <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="time"
+                                name="startTime"
+                                value={manualFormData.startTime}
+                                onChange={handleManualInputChange}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowManualAdd(false);
+                              setManualFormData({
+                                roomId: '',
+                                department: '',
+                                borrower: '',
+                                extension: '',
+                                date: '',
+                                startTime: ''
+                              });
+                            }}
+                            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                          >
+                            取消
+                          </button>
+                          <button
+                            onClick={handleManualAdd}
+                            className="flex-1 bg-indigo-500 text-white py-3 rounded-lg font-medium hover:bg-indigo-600 transition-colors"
+                          >
+                            新增記錄
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );
