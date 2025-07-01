@@ -29,7 +29,7 @@
             { id: 7, name: '協力講堂' }
           ]);
 
-          // 借用記錄 - 使用 localStorage 儲存，加強錯誤處理
+          // 借用記錄 - 簡化版，加入匯出功能
           const [bookings, setBookings] = useState(() => {
             try {
               const saved = localStorage.getItem('meetingRoomBookings');
@@ -39,6 +39,42 @@
               return [];
             }
           });
+
+          // 匯出資料功能
+          const exportData = () => {
+            const dataStr = JSON.stringify(bookings, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `會議室借用記錄_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+          };
+
+          // 匯入資料功能
+          const importData = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                try {
+                  const importedData = JSON.parse(e.target.result);
+                  setBookings(importedData);
+                  alert('資料匯入成功！');
+                } catch (error) {
+                  alert('匯入失敗，檔案格式錯誤');
+                }
+              };
+              reader.readAsText(file);
+            }
+          };
+
+          // 雲端同步提示
+          const showSyncInfo = () => {
+            alert(`📱💻 資料同步說明：\n\n由於技術限制，手機和電腦的記錄是分開儲存的。\n\n建議做法：\n• 同事用手機借用\n• 管理員用固定電腦查看記錄\n• 或使用「匯出記錄」功能備份資料`);
+          };
           
           // 表單資料 - 從 URL 參數自動填入會議室
           const [formData, setFormData] = useState(() => {
@@ -452,15 +488,26 @@
                         </div>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => {
-                              const data = localStorage.getItem('meetingRoomBookings');
-                              console.log('目前儲存的資料:', data);
-                              alert('資料已輸出到 Console，請按 F12 查看');
-                            }}
+                            onClick={showSyncInfo}
                             className="bg-yellow-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-yellow-600 transition-colors"
                           >
-                            🔍 檢查資料
+                            📱💻 同步說明
                           </button>
+                          <button
+                            onClick={exportData}
+                            className="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors"
+                          >
+                            📤 匯出記錄
+                          </button>
+                          <label className="bg-purple-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-600 transition-colors cursor-pointer">
+                            📥 匯入記錄
+                            <input
+                              type="file"
+                              accept=".json"
+                              onChange={importData}
+                              className="hidden"
+                            />
+                          </label>
                           <button
                             onClick={() => setSystemMode('user')}
                             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
