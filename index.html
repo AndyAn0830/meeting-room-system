@@ -420,16 +420,16 @@
                     
                     <div class="form-body">
                         <div class="form-group">
-                            <label>🔑 選擇鑰匙 <span class="required">*</span></label>
+                            <label>🏠 選擇會議室 <span class="required">*</span></label>
                             <select id="roomId" class="form-control">
-                                <option value="">請選擇鑰匙</option>
-                                <option value="1">第一會議室鑰匙</option>
-                                <option value="2">二期講堂鑰匙</option>
-                                <option value="3">合心會議室鑰匙</option>
-                                <option value="4">和氣會議室鑰匙</option>
-                                <option value="5">互愛會議室鑰匙</option>
-                                <option value="6">貴賓室鑰匙</option>
-                                <option value="7">協力講堂鑰匙</option>
+                                <option value="">請選擇會議室</option>
+                                <option value="1">第一會議室</option>
+                                <option value="2">二期講堂</option>
+                                <option value="3">合心會議室</option>
+                                <option value="4">和氣會議室</option>
+                                <option value="5">互愛會議室</option>
+                                <option value="6">貴賓室</option>
+                                <option value="7">協力講堂</option>
                             </select>
                         </div>
 
@@ -465,10 +465,10 @@
                 <!-- 使用提醒 -->
                 <div class="reminder">
                     <h3>💡 使用提醒</h3>
-                    <ul>
-                        <li>填寫完成後請到櫃台索取鑰匙</li>
-                        <li>請準時使用會議室</li>
-                        <li>使用完畢請歸還鑰匙</li>
+                                            <ul>
+                        <li>借用會議室鑰匙時請確認編號</li>
+                        <li>請妥善保管借用的鑰匙</li>
+                        <li>使用完畢請盡速歸還</li>
                     </ul>
                 </div>
             </div>
@@ -478,7 +478,7 @@
                 <div class="admin-container">
                     <div class="admin-header">
                         <div class="admin-title">
-                            <h1>🛠️ 會議室管理後台</h1>
+                            <h1>🛠️ 鑰匙管理後台</h1>
                             <p>管理員專用 - 記錄查看與歸還功能</p>
                         </div>
                         <div class="admin-buttons">
@@ -487,7 +487,7 @@
                         </div>
                     </div>
 
-                    <h2 style="margin-bottom: 24px; color: #333;">📋 借用記錄管理</h2>
+                    <h2 style="margin-bottom: 24px; color: #333;">📋 鑰匙借用記錄管理</h2>
                     
                     <!-- 記錄類型切換 -->
                     <div class="tabs">
@@ -588,18 +588,43 @@
         let selectedBookings = [];
         let currentView = 'current';
 
+        // 資料同步功能
+        function saveToStorage() {
+            try {
+                localStorage.setItem('keyBookings', JSON.stringify(bookings));
+                localStorage.setItem('lastUpdate', new Date().getTime().toString());
+            } catch (error) {
+                console.warn('儲存資料失敗:', error);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('keyBookings');
+                if (saved) {
+                    bookings = JSON.parse(saved);
+                }
+            } catch (error) {
+                console.warn('載入資料失敗:', error);
+                bookings = [];
+            }
+        }
+
         const rooms = {
-            1: '第一會議室鑰匙',
-            2: '二期講堂鑰匙',
-            3: '合心會議室鑰匙',
-            4: '和氣會議室鑰匙',
-            5: '互愛會議室鑰匙',
-            6: '貴賓室鑰匙',
-            7: '協力講堂鑰匙'
+            1: '第一會議室',
+            2: '二期講堂',
+            3: '合心會議室',
+            4: '和氣會議室',
+            5: '互愛會議室',
+            6: '貴賓室',
+            7: '協力講堂'
         };
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 載入儲存的資料
+            loadFromStorage();
+            
             // 設定最小日期為今天
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').min = today;
@@ -610,7 +635,36 @@
                     login();
                 }
             });
+
+            // 定期檢查資料更新 (每5秒)
+            setInterval(checkForUpdates, 5000);
         });
+
+        // 檢查資料更新
+        function checkForUpdates() {
+            try {
+                const lastUpdate = localStorage.getItem('lastUpdate');
+                const currentTime = new Date().getTime();
+                
+                // 如果有新的更新，重新載入資料
+                if (lastUpdate && currentTime - parseInt(lastUpdate) < 10000) {
+                    const saved = localStorage.getItem('keyBookings');
+                    if (saved) {
+                        const newBookings = JSON.parse(saved);
+                        // 只有在資料真的不同時才更新
+                        if (JSON.stringify(newBookings) !== JSON.stringify(bookings)) {
+                            bookings = newBookings;
+                            // 如果在管理員介面，更新顯示
+                            if (!document.getElementById('admin-interface').classList.contains('hidden')) {
+                                updateRecordsDisplay();
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('檢查更新失敗:', error);
+            }
+        }
 
         // 顯示登入彈窗
         function showLogin() {
@@ -644,6 +698,7 @@
         function switchToAdmin() {
             document.getElementById('user-interface').classList.add('hidden');
             document.getElementById('admin-interface').classList.remove('hidden');
+            loadFromStorage(); // 重新載入最新資料
             updateRecordsDisplay();
         }
 
@@ -669,18 +724,7 @@
                 return;
             }
 
-            // 檢查時間衝突
-            const hasConflict = bookings.some(booking => 
-                booking.roomId === parseInt(roomId) &&
-                booking.date === date &&
-                booking.startTime === startTime &&
-                booking.status === '借用中'
-            );
-
-            if (hasConflict) {
-                alert('該會議室在此時間已被預約！請選擇其他時間。');
-                return;
-            }
+            // 鑰匙系統不需要檢查時間衝突，因為可以同時借用多支
 
             // 新增借用記錄
             const newBooking = {
@@ -698,6 +742,9 @@
 
             bookings.push(newBooking);
 
+            // 儲存資料到 localStorage
+            saveToStorage();
+
             // 清空表單
             document.getElementById('roomId').value = '';
             document.getElementById('department').value = '';
@@ -706,7 +753,7 @@
             document.getElementById('date').value = '';
             document.getElementById('startTime').value = '';
 
-            alert(`借用成功！\n\n會議室：${rooms[roomId]}\n借用單位：${department}\n借用人：${borrower}\n\n請到櫃台索取鑰匙。`);
+            alert(`會議室鑰匙借用成功！\n\n會議室：${rooms[roomId]}\n借用單位：${department}\n借用人：${borrower}\n\n請妥善保管鑰匙！`);
         }
 
         // 切換記錄類型標籤
@@ -822,6 +869,7 @@
             
             const count = selectedBookings.length;
             selectedBookings = [];
+            saveToStorage(); // 儲存變更
             updateRecordsDisplay();
             alert(`已歸還 ${count} 筆記錄！`);
         }
@@ -858,18 +906,7 @@
                 return;
             }
 
-            // 檢查時間衝突
-            const hasConflict = bookings.some(booking => 
-                booking.roomId === parseInt(roomId) &&
-                booking.date === date &&
-                booking.startTime === startTime &&
-                booking.status === '借用中'
-            );
-
-            if (hasConflict) {
-                alert('該會議室在此時間已被預約！請選擇其他時間。');
-                return;
-            }
+            // 鑰匙系統不需要檢查時間衝突
 
             // 新增借用記錄
             const newBooking = {
@@ -886,6 +923,7 @@
             };
 
             bookings.push(newBooking);
+            saveToStorage(); // 儲存變更
             hideManualAdd();
             updateRecordsDisplay();
             alert('手動記錄新增成功！');
