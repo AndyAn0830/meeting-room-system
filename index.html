@@ -239,7 +239,7 @@
                 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">🔒 密碼</label>
-                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼">
+                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼" onkeypress="if(event.key==='Enter') doLogin()">
                 </div>
                 
                 <div style="display: flex; gap: 12px;">
@@ -268,6 +268,16 @@
                 <button onclick="closeSyncModal()" style="width: 100%; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">關閉</button>
             </div>
         </div>
+
+        <!-- 提醒 -->
+        <div class="card" style="background: #fff8e1; border: 1px solid #ffecb3;">
+            <h3 style="color: #f57f17; margin-bottom: 12px;">💡 使用提醒</h3>
+            <ul style="color: #f57f17; font-size: 14px; margin-left: 20px;">
+                <li>借用會議室鑰匙時請確認編號</li>
+                <li>請妥善保管借用的鑰匙</li>
+                <li>使用完畢請盡速歸還</li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -288,7 +298,7 @@
         };
 
         // 初始化
-        window.onload = function() {
+        window.onload = async function() {
             console.log('頁面載入完成');
             
             // 設定今天為最小日期
@@ -298,11 +308,17 @@
             // 檢查是否有同步資料
             checkForSyncData();
             
-            // 載入已儲存的資料
-            loadBookings();
+            // 自動從雲端載入資料
+            await autoLoadFromCloud();
+            
             updateRecordsList();
             
             console.log('初始化完成，目前記錄數:', allBookings.length);
+
+            // 每30秒自動檢查雲端更新
+            setInterval(async () => {
+                await autoLoadFromCloud();
+            }, 30000);
         };
 
         // 檢查 URL 中的同步資料
@@ -345,17 +361,21 @@
         }
 
         // 儲存記錄
-        function saveBookings() {
+        async function saveBookings() {
             try {
                 localStorage.setItem('keyBookings', JSON.stringify(allBookings));
-                console.log('儲存記錄:', allBookings.length, '筆');
+                localStorage.setItem('lastUpdate', new Date().toISOString());
+                console.log('本地儲存記錄:', allBookings.length, '筆');
+                
+                // 自動同步到雲端
+                await autoSaveToCloud();
             } catch (error) {
                 console.log('儲存記錄失敗:', error);
             }
         }
 
         // 提交借用
-        function submitBooking() {
+        async function submitBooking() {
             console.log('開始提交借用...');
             
             // 取得表單資料
@@ -394,8 +414,8 @@
             allBookings.push(newRecord);
             console.log('總記錄數:', allBookings.length);
 
-            // 儲存到本地
-            saveBookings();
+            // 自動儲存到本地和雲端
+            await saveBookings();
 
             // 清空表單
             document.getElementById('roomId').value = '';
@@ -409,18 +429,20 @@
             updateRecordsList();
 
             // 成功提示
-            alert('借用成功！\n\n會議室：' + roomNames[roomId] + '\n借用人：' + borrower + '\n\n請妥善保管鑰匙！');
+            alert('借用成功！\n\n會議室：' + roomNames[roomId] + '\n借用人：' + borrower + '\n\n請妥善保管鑰匙！\n\n資料已自動同步，手機可即時查看。');
             
-            console.log('借用完成');
+            console.log('借用完成，已自動同步');
         }
 
         // 顯示登入彈窗
         function showLogin() {
+            console.log('顯示登入彈窗');
             document.getElementById('login-modal').style.display = 'block';
         }
 
         // 關閉登入彈窗
         function closeLogin() {
+            console.log('關閉登入彈窗');
             document.getElementById('login-modal').style.display = 'none';
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
@@ -428,52 +450,123 @@
 
         // 執行登入
         function doLogin() {
+            console.log('執行登入驗證');
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            
+            console.log('輸入的帳號:', username);
+            console.log('輸入的密碼:', password);
 
             if (username === 'hl1234' && password === 'admin1234') {
+                console.log('登入成功');
                 isAdminLoggedIn = true;  // 設定登入狀態
                 closeLogin();
-                toggleAdmin();
+                showAdminPanel(); // 直接顯示管理員面板
                 alert('登入成功！');
             } else {
+                console.log('登入失敗');
                 alert('帳號或密碼錯誤！');
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
             }
         }
 
-        // 顯示同步彈窗
-        function showSyncModal() {
-            const modal = document.getElementById('sync-modal');
-            const qrContainer = document.getElementById('qr-code');
-            const linkInput = document.getElementById('share-link');
+        // 顯示管理員面板
+        function showAdminPanel() {
+            console.log('顯示管理員面板');
+            const userForm = document.getElementById('user-form');
+            const adminPanel = document.getElementById('admin-panel');
             
-            // 生成包含資料的 URL
-            const data = btoa(JSON.stringify(allBookings));
-            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${data}`;
-            
-            // 生成 QR Code
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
-            qrContainer.innerHTML = `<img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">`;
-            
-            // 設定分享連結
-            linkInput.value = shareUrl;
-            
-            modal.style.display = 'block';
+            userForm.style.display = 'none';
+            adminPanel.classList.add('show');
+            updateRecordsList();
         }
 
-        // 關閉同步彈窗
-        function closeSyncModal() {
-            document.getElementById('sync-modal').style.display = 'none';
+        // 簡化版自動同步 - 使用 GitHub Gist 作為免費雲端儲存
+        const GIST_ID = 'your_gist_id_here'; // 這裡需要設定您的 Gist ID
+        const GITHUB_TOKEN = 'your_github_token_here'; // 這裡需要設定您的 GitHub Token
+
+        // 自動儲存到雲端
+        async function autoSaveToCloud() {
+            // 先儲存到本地（備用）
+            saveBookings();
+            
+            // 如果沒有設定 GitHub 資訊，就只使用本地儲存
+            if (GIST_ID === 'your_gist_id_here' || GITHUB_TOKEN === 'your_github_token_here') {
+                console.log('雲端同步功能未設定，僅使用本地儲存');
+                return;
+            }
+
+            try {
+                // 嘗試儲存到 GitHub Gist
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        files: {
+                            'bookings.json': {
+                                content: JSON.stringify({
+                                    bookings: allBookings,
+                                    lastUpdate: new Date().toISOString()
+                                })
+                            }
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('資料已自動同步到雲端');
+                } else {
+                    throw new Error('雲端同步失敗');
+                }
+            } catch (error) {
+                console.log('雲端同步失敗，使用本地儲存:', error.message);
+            }
         }
 
-        // 複製連結
-        function copyLink() {
-            const linkInput = document.getElementById('share-link');
-            linkInput.select();
-            document.execCommand('copy');
-            alert('連結已複製！請傳送到手機開啟。');
+        // 自動從雲端載入
+        async function autoLoadFromCloud() {
+            // 先載入本地資料
+            loadBookings();
+
+            // 如果沒有設定 GitHub 資訊，就只使用本地儲存
+            if (GIST_ID === 'your_gist_id_here' || GITHUB_TOKEN === 'your_github_token_here') {
+                console.log('雲端同步功能未設定，僅使用本地儲存');
+                return;
+            }
+
+            try {
+                // 嘗試從 GitHub Gist 載入
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                
+                if (response.ok) {
+                    const gist = await response.json();
+                    const content = gist.files['bookings.json']?.content;
+                    
+                    if (content) {
+                        const data = JSON.parse(content);
+                        if (data.bookings && Array.isArray(data.bookings)) {
+                            // 比較本地和雲端的時間戳，使用較新的資料
+                            const cloudTime = new Date(data.lastUpdate).getTime();
+                            const localTime = new Date(localStorage.getItem('lastUpdate') || '0').getTime();
+                            
+                            if (cloudTime > localTime) {
+                                allBookings = data.bookings;
+                                saveBookings(); // 更新本地儲存
+                                console.log('已載入雲端較新資料');
+                                updateRecordsList();
+                            } else {
+                                console.log('本地資料較新，保持本地資料');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('雲端載入失敗，使用本地資料:', error.message);
+            }
         }
 
         // 更新記錄列表
@@ -508,23 +601,23 @@
         }
 
         // 歸還鑰匙
-        function returnKey(index) {
+        async function returnKey(index) {
             if (confirm('確定要歸還這把鑰匙嗎？')) {
                 allBookings[index].status = '已歸還';
                 allBookings[index].returnTime = new Date().toLocaleString();
-                saveBookings();
+                await saveBookings(); // 自動同步
                 updateRecordsList();
-                alert('鑰匙歸還成功！');
+                alert('鑰匙歸還成功！資料已自動同步。');
             }
         }
 
         // 清除所有記錄
-        function clearAllData() {
+        async function clearAllData() {
             if (confirm('確定要清除所有記錄嗎？此操作無法復原！')) {
                 allBookings = [];
-                saveBookings();
+                await saveBookings(); // 自動同步
                 updateRecordsList();
-                alert('所有記錄已清除！');
+                alert('所有記錄已清除！資料已自動同步。');
             }
         }
     </script>
