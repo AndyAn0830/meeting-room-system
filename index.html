@@ -483,6 +483,7 @@
                         </div>
                         <div class="admin-buttons">
                             <button class="btn-small btn-indigo" onclick="showManualAdd()">➕ 手動新增</button>
+                            <button class="btn-small" style="background: #4caf50; color: white;" onclick="generateQRCode()">📱 生成二維碼</button>
                             <button class="btn-small btn-secondary" onclick="switchToUser()">👤 切換到使用者介面</button>
                         </div>
                     </div>
@@ -588,50 +589,17 @@
         let selectedBookings = [];
         let currentView = 'current';
 
-        // 簡單的雲端同步 - 使用免費的 Firebase Realtime Database
-        const firebaseConfig = {
-            databaseURL: "https://key-booking-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        };
-
-        // 簡化的雲端同步函數
-        async function syncToCloud() {
+        // 簡單可靠的資料儲存 - 只使用 localStorage
+        function saveData() {
             try {
-                const response = await fetch(`${firebaseConfig.databaseURL}/bookings.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bookings)
-                });
-                
-                if (response.ok) {
-                    console.log('資料已同步至雲端');
-                } else {
-                    throw new Error('同步失敗');
-                }
-            } catch (error) {
-                console.warn('雲端同步失敗，資料僅保存在本地');
-                // 至少保存到本地
                 localStorage.setItem('keyBookings', JSON.stringify(bookings));
+                localStorage.setItem('lastUpdate', new Date().getTime().toString());
+            } catch (error) {
+                console.warn('儲存資料失敗:', error);
             }
         }
 
-        async function loadFromCloud() {
-            try {
-                const response = await fetch(`${firebaseConfig.databaseURL}/bookings.json`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && Array.isArray(data)) {
-                        bookings = data;
-                        localStorage.setItem('keyBookings', JSON.stringify(bookings));
-                        console.log('已載入雲端資料');
-                        return true;
-                    }
-                }
-            } catch (error) {
-                console.warn('載入雲端資料失敗');
-            }
-            
-            // 雲端失敗時使用本地資料
+        function loadData() {
             try {
                 const saved = localStorage.getItem('keyBookings');
                 if (saved) {
@@ -639,10 +607,62 @@
                     return true;
                 }
             } catch (error) {
-                console.warn('載入本地資料失敗');
+                console.warn('載入資料失敗:', error);
             }
-            
             bookings = [];
+            return false;
+        }
+
+        // 生成簡單的二維碼供手機掃描
+        function generateQRCode() {
+            const data = btoa(JSON.stringify(bookings));
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?sync=' + data)}`;
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); z-index: 9999;
+                display: flex; align-items: center; justify-content: center;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 300px;">
+                    <h3 style="margin-bottom: 20px; color: #333;">📱 手機掃描查看記錄</h3>
+                    <img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">
+                    <p style="margin: 15px 0; color: #666; font-size: 14px;">用手機相機掃描此二維碼</p>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                        關閉
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // 從URL參數載入同步資料
+        function checkSyncData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const syncData = urlParams.get('sync');
+            
+            if (syncData) {
+                try {
+                    const decodedData = JSON.parse(atob(syncData));
+                    if (Array.isArray(decodedData)) {
+                        bookings = decodedData;
+                        saveData();
+                        
+                        // 清除URL參數，避免重複載入
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        alert(`已同步資料！共 ${bookings.length} 筆記錄。`);
+                        return true;
+                    }
+                } catch (error) {
+                    console.warn('同步資料格式錯誤:', error);
+                }
+            }
             return false;
         }
 
@@ -657,9 +677,12 @@
         };
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', async function() {
-            // 載入資料
-            await loadFromCloud();
+        document.addEventListener('DOMContentLoaded', function() {
+            // 先檢查是否有同步資料
+            if (!checkSyncData()) {
+                // 沒有同步資料就載入本地資料
+                loadData();
+            }
             
             // 設定最小日期為今天
             const today = new Date().toISOString().split('T')[0];
@@ -671,15 +694,6 @@
                     login();
                 }
             });
-
-            // 每30秒自動同步一次
-            setInterval(async () => {
-                await loadFromCloud();
-                // 如果在管理員介面，更新顯示
-                if (!document.getElementById('admin-interface').classList.contains('hidden')) {
-                    updateRecordsDisplay();
-                }
-            }, 30000);
         });
 
         // 顯示登入彈窗
@@ -711,10 +725,10 @@
         }
 
         // 切換到管理員介面
-        async function switchToAdmin() {
+        function switchToAdmin() {
             document.getElementById('user-interface').classList.add('hidden');
             document.getElementById('admin-interface').classList.remove('hidden');
-            await loadFromCloud(); // 重新載入最新資料
+            loadData(); // 重新載入最新資料
             updateRecordsDisplay();
         }
 
@@ -865,7 +879,7 @@
         }
 
         // 歸還選中的記錄
-        async function returnSelected() {
+        function returnSelected() {
             if (selectedBookings.length === 0) {
                 alert('請先選擇要歸還的記錄！');
                 return;
@@ -885,7 +899,7 @@
             
             const count = selectedBookings.length;
             selectedBookings = [];
-            await syncToCloud(); // 同步到雲端
+            saveData(); // 儲存變更
             updateRecordsDisplay();
             alert(`已歸還 ${count} 筆記錄！`);
         }
