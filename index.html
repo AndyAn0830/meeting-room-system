@@ -4,777 +4,849 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會議室借用系統</title>
-    <meta name="description" content="會議室借用管理系統 - 支援QR Code掃描借用">
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #1976d2;
+            margin: 12px 0 8px 0;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .admin-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #666;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .admin-btn:hover {
+            background: #555;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .form-body {
+            padding: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        .reminder {
+            background: #fff8e1;
+            border: 1px solid #ffecb3;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        
+        .reminder h3 {
+            color: #f57f17;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .reminder ul {
+            color: #f57f17;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+        
+        .reminder li {
+            margin-bottom: 4px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal h3 {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            flex: 1;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-primary {
+            background: #1976d2;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        
+        .admin-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .admin-title h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .admin-title p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .admin-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-indigo {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .btn-indigo:hover {
+            background: #5856eb;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .tab:not(.active) {
+            background: #e9ecef;
+            color: #666;
+        }
+        
+        .tab:not(.active):hover {
+            background: #dee2e6;
+        }
+        
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .record-item {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .record-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .record-item.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+        
+        .record-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .record-grid {
+                grid-template-columns: auto 1fr auto auto auto;
+                align-items: center;
+            }
+        }
+        
+        .record-info {
+            font-size: 14px;
+        }
+        
+        .record-info strong {
+            color: #333;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status-returned {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .management-actions {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+            padding: 12px 24px;
+            font-weight: bold;
+        }
+        
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        
+        .selected-count {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            color: #666;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="app">
+        <div class="container">
+            <!-- 使用者介面 -->
+            <div id="user-interface">
+                <!-- 標題 -->
+                <div class="header">
+                    <div style="font-size: 32px;">🏢</div>
+                    <h1>會議室借用系統</h1>
+                    <p>請填寫借用資訊</p>
+                    <button class="admin-btn" onclick="showLogin()">🔧 管理員</button>
+                </div>
 
-    <script type="text/babel">
-        const { useState } = React;
+                <!-- 借用表單 -->
+                <div class="form-container">
+                    <div class="form-header">
+                        <h2>📝 借用申請</h2>
+                        <p style="margin-top: 4px; color: #666; font-size: 14px;">請填寫完整資訊</p>
+                    </div>
+                    
+                    <div class="form-body">
+                        <div class="form-group">
+                            <label>🏠 選擇會議室 <span class="required">*</span></label>
+                            <select id="roomId" class="form-control">
+                                <option value="">請選擇會議室</option>
+                                <option value="1">第一會議室</option>
+                                <option value="2">二期講堂</option>
+                                <option value="3">合心會議室</option>
+                                <option value="4">和氣會議室</option>
+                                <option value="5">互愛會議室</option>
+                                <option value="6">貴賓室</option>
+                                <option value="7">協力講堂</option>
+                            </select>
+                        </div>
 
-        function MeetingRoomSystem() {
-          // 會議室資料
-          const [rooms] = useState([
-            { id: 1, name: '第一會議室' },
-            { id: 2, name: '二期講堂' },
-            { id: 3, name: '合心會議室' },
-            { id: 4, name: '和氣會議室' },
-            { id: 5, name: '互愛會議室' },
-            { id: 6, name: '貴賓室' },
-            { id: 7, name: '協力講堂' }
-          ]);
+                        <div class="form-group">
+                            <label>🏢 借用單位 <span class="required">*</span></label>
+                            <input type="text" id="department" class="form-control" placeholder="請輸入單位名稱">
+                        </div>
 
-          // 借用記錄
-          const [bookings, setBookings] = useState([]);
-          
-          // 表單資料
-          const [formData, setFormData] = useState({
-            roomId: '',
-            department: '',
-            borrower: '',
-            extension: '',
-            date: '',
-            startTime: ''
-          });
+                        <div class="form-group">
+                            <label>👤 借用人 <span class="required">*</span></label>
+                            <input type="text" id="borrower" class="form-control" placeholder="請輸入您的姓名">
+                        </div>
 
-          // 系統模式
-          const [systemMode, setSystemMode] = useState('user');
-          
-          // 管理員登入狀態
-          const [showLoginModal, setShowLoginModal] = useState(false);
-          const [loginData, setLoginData] = useState({
-            username: '',
-            password: ''
-          });
-          
-          // 管理員頁面
-          const [recordView, setRecordView] = useState('current');
-          const [selectedBookings, setSelectedBookings] = useState([]);
-          const [showManualAdd, setShowManualAdd] = useState(false);
-          const [manualFormData, setManualFormData] = useState({
-            roomId: '',
-            department: '',
-            borrower: '',
-            extension: '',
-            date: '',
-            startTime: ''
-          });
+                        <div class="form-group">
+                            <label>📞 分機號碼 <span class="required">*</span></label>
+                            <input type="tel" id="extension" class="form-control" placeholder="請輸入分機號碼">
+                        </div>
 
-          // 處理登入表單輸入
-          const handleLoginInputChange = (e) => {
-            const { name, value } = e.target;
-            setLoginData(prev => ({
-              ...prev,
-              [name]: value
-            }));
-          };
+                        <div class="form-group">
+                            <label>📅 借用日期 <span class="required">*</span></label>
+                            <input type="date" id="date" class="form-control">
+                        </div>
 
-          // 管理員登入驗證
-          const handleAdminLogin = () => {
-            if (loginData.username === 'hl1234' && loginData.password === 'admin1234') {
-              setSystemMode('admin');
-              setShowLoginModal(false);
-              setLoginData({ username: '', password: '' });
-              alert('登入成功！');
-            } else {
-              alert('帳號或密碼錯誤！');
-              setLoginData({ username: '', password: '' });
-            }
-          };
+                        <div class="form-group">
+                            <label>⏰ 借用時間 <span class="required">*</span></label>
+                            <input type="time" id="startTime" class="form-control">
+                        </div>
 
-          // 處理表單輸入
-          const handleInputChange = (e) => {
-            const { name, value } = e.target;
-            setFormData(prev => ({
-              ...prev,
-              [name]: value
-            }));
-          };
+                        <button class="btn" onclick="submitBooking()">✅ 確認借用</button>
+                    </div>
+                </div>
 
-          // 使用者借用提交
-          const handleUserBookingSubmit = () => {
-            if (!formData.roomId || !formData.department || !formData.borrower || !formData.extension || !formData.date || !formData.startTime) {
-              alert('請填寫所有必填欄位！');
-              return;
-            }
+                <!-- 使用提醒 -->
+                <div class="reminder">
+                    <h3>💡 使用提醒</h3>
+                    <ul>
+                        <li>填寫完成後請到櫃台索取鑰匙</li>
+                        <li>請準時使用會議室</li>
+                        <li>使用完畢請歸還鑰匙</li>
+                    </ul>
+                </div>
+            </div>
 
-            const selectedRoom = rooms.find(room => room.id === parseInt(formData.roomId));
+            <!-- 管理員介面 -->
+            <div id="admin-interface" class="hidden">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <div class="admin-title">
+                            <h1>🛠️ 會議室管理後台</h1>
+                            <p>管理員專用 - 記錄查看與歸還功能</p>
+                        </div>
+                        <div class="admin-buttons">
+                            <button class="btn-small btn-indigo" onclick="showManualAdd()">➕ 手動新增</button>
+                            <button class="btn-small btn-secondary" onclick="switchToUser()">👤 切換到使用者介面</button>
+                        </div>
+                    </div>
+
+                    <h2 style="margin-bottom: 24px; color: #333;">📋 借用記錄管理</h2>
+                    
+                    <!-- 記錄類型切換 -->
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('current')" id="current-tab">
+                            🟢 目前借用中 (<span id="current-count">0</span>)
+                        </button>
+                        <button class="tab" onclick="switchTab('all')" id="all-tab">
+                            📋 全部記錄 (<span id="all-count">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- 管理操作 -->
+                    <div id="management-actions" class="management-actions hidden">
+                        <button class="btn btn-warning" onclick="returnSelected()">🔄 歸還選中的記錄</button>
+                        <div class="selected-count">
+                            已選擇: <span id="selected-count" style="font-weight: bold; color: #1976d2;">0</span> 筆
+                        </div>
+                    </div>
+
+                    <!-- 記錄列表 -->
+                    <div id="records-container">
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>目前沒有任何記錄</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登入彈窗 -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>🔐 管理員登入</h3>
+            <div class="form-group">
+                <label>👤 帳號</label>
+                <input type="text" id="username" class="form-control" placeholder="請輸入管理員帳號">
+            </div>
+            <div class="form-group">
+                <label>🔒 密碼</label>
+                <input type="password" id="password" class="form-control" placeholder="請輸入密碼">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="hideLogin()">取消</button>
+                <button class="btn btn-primary" onclick="login()">登入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 手動新增彈窗 -->
+    <div id="manual-add-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>➕ 手動新增記錄</h3>
+            <div class="form-group">
+                <label>會議室 <span class="required">*</span></label>
+                <select id="manual-roomId" class="form-control">
+                    <option value="">請選擇會議室</option>
+                    <option value="1">第一會議室</option>
+                    <option value="2">二期講堂</option>
+                    <option value="3">合心會議室</option>
+                    <option value="4">和氣會議室</option>
+                    <option value="5">互愛會議室</option>
+                    <option value="6">貴賓室</option>
+                    <option value="7">協力講堂</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>借用單位 <span class="required">*</span></label>
+                <input type="text" id="manual-department" class="form-control" placeholder="請輸入單位名稱">
+            </div>
+            <div class="form-group">
+                <label>借用人 <span class="required">*</span></label>
+                <input type="text" id="manual-borrower" class="form-control" placeholder="請輸入借用人姓名">
+            </div>
+            <div class="form-group">
+                <label>分機號碼 <span class="required">*</span></label>
+                <input type="tel" id="manual-extension" class="form-control" placeholder="請輸入分機號碼">
+            </div>
+            <div class="form-group">
+                <label>借用日期 <span class="required">*</span></label>
+                <input type="date" id="manual-date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>借用時間 <span class="required">*</span></label>
+                <input type="time" id="manual-startTime" class="form-control">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="hideManualAdd()">取消</button>
+                <button class="btn btn-primary" onclick="submitManualAdd()">新增</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let bookings = [];
+        let selectedBookings = [];
+        let currentView = 'current';
+
+        const rooms = {
+            1: '第一會議室',
+            2: '二期講堂',
+            3: '合心會議室',
+            4: '和氣會議室',
+            5: '互愛會議室',
+            6: '貴賓室',
+            7: '協力講堂'
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設定最小日期為今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').min = today;
             
+            // 綁定 Enter 鍵登入
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+
+        // 顯示登入彈窗
+        function showLogin() {
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+
+        // 隱藏登入彈窗
+        function hideLogin() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // 管理員登入
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'hl1234' && password === 'admin1234') {
+                hideLogin();
+                switchToAdmin();
+                alert('登入成功！');
+            } else {
+                alert('帳號或密碼錯誤！');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // 切換到管理員介面
+        function switchToAdmin() {
+            document.getElementById('user-interface').classList.add('hidden');
+            document.getElementById('admin-interface').classList.remove('hidden');
+            updateRecordsDisplay();
+        }
+
+        // 切換到使用者介面
+        function switchToUser() {
+            document.getElementById('admin-interface').classList.add('hidden');
+            document.getElementById('user-interface').classList.remove('hidden');
+            selectedBookings = [];
+        }
+
+        // 提交借用申請
+        function submitBooking() {
+            const roomId = document.getElementById('roomId').value;
+            const department = document.getElementById('department').value;
+            const borrower = document.getElementById('borrower').value;
+            const extension = document.getElementById('extension').value;
+            const date = document.getElementById('date').value;
+            const startTime = document.getElementById('startTime').value;
+
+            // 驗證必填欄位
+            if (!roomId || !department || !borrower || !extension || !date || !startTime) {
+                alert('請填寫所有必填欄位！');
+                return;
+            }
+
+            // 檢查時間衝突
             const hasConflict = bookings.some(booking => 
-              booking.roomId === parseInt(formData.roomId) &&
-              booking.date === formData.date &&
-              booking.startTime === formData.startTime &&
-              booking.status === '借用中'
+                booking.roomId === parseInt(roomId) &&
+                booking.date === date &&
+                booking.startTime === startTime &&
+                booking.status === '借用中'
             );
 
             if (hasConflict) {
-              alert('該會議室在此時間已被預約！請選擇其他時間。');
-              return;
+                alert('該會議室在此時間已被預約！請選擇其他時間。');
+                return;
             }
 
+            // 新增借用記錄
             const newBooking = {
-              id: Date.now(),
-              roomId: parseInt(formData.roomId),
-              roomName: selectedRoom.name,
-              department: formData.department,
-              borrower: formData.borrower,
-              extension: formData.extension,
-              date: formData.date,
-              startTime: formData.startTime,
-              status: '借用中',
-              bookingTime: new Date().toLocaleString()
+                id: Date.now(),
+                roomId: parseInt(roomId),
+                roomName: rooms[roomId],
+                department: department,
+                borrower: borrower,
+                extension: extension,
+                date: date,
+                startTime: startTime,
+                status: '借用中',
+                bookingTime: new Date().toLocaleString()
             };
 
-            setBookings([...bookings, newBooking]);
+            bookings.push(newBooking);
+
+            // 清空表單
+            document.getElementById('roomId').value = '';
+            document.getElementById('department').value = '';
+            document.getElementById('borrower').value = '';
+            document.getElementById('extension').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('startTime').value = '';
+
+            alert(`借用成功！\n\n會議室：${rooms[roomId]}\n借用單位：${department}\n借用人：${borrower}\n\n請到櫃台索取鑰匙。`);
+        }
+
+        // 切換記錄類型標籤
+        function switchTab(view) {
+            currentView = view;
             
-            setFormData({
-              roomId: '',
-              department: '',
-              borrower: '',
-              extension: '',
-              date: '',
-              startTime: ''
-            });
+            // 更新標籤樣式
+            document.getElementById('current-tab').classList.toggle('active', view === 'current');
+            document.getElementById('all-tab').classList.toggle('active', view === 'all');
+            
+            // 重置選擇
+            selectedBookings = [];
+            
+            updateRecordsDisplay();
+        }
 
-            alert(`借用成功！\n\n會議室：${selectedRoom.name}\n借用單位：${formData.department}\n借用人：${formData.borrower}\n\n請到櫃台索取鑰匙。`);
-          };
-
-          // 管理員功能
-          const handleCheckboxChange = (bookingId) => {
-            if (selectedBookings.includes(bookingId)) {
-              setSelectedBookings(selectedBookings.filter(id => id !== bookingId));
+        // 更新記錄顯示
+        function updateRecordsDisplay() {
+            const currentBookings = bookings.filter(b => b.status === '借用中');
+            
+            // 更新計數
+            document.getElementById('current-count').textContent = currentBookings.length;
+            document.getElementById('all-count').textContent = bookings.length;
+            
+            let filteredBookings = currentView === 'current' ? currentBookings : bookings;
+            
+            const container = document.getElementById('records-container');
+            const managementActions = document.getElementById('management-actions');
+            
+            // 顯示/隱藏管理操作
+            if (currentView === 'current' && filteredBookings.length > 0) {
+                managementActions.classList.remove('hidden');
             } else {
-              setSelectedBookings([...selectedBookings, bookingId]);
+                managementActions.classList.add('hidden');
             }
-          };
+            
+            // 更新選擇計數
+            document.getElementById('selected-count').textContent = selectedBookings.length;
+            
+            if (filteredBookings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>${currentView === 'current' ? '目前沒有借用中的記錄' : '目前沒有任何記錄'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="records-list">
+                    ${filteredBookings.map(booking => `
+                        <div class="record-item ${selectedBookings.includes(booking.id) ? 'selected' : ''}">
+                            <div class="record-grid">
+                                <div style="display: flex; align-items: center;">
+                                    ${currentView === 'current' && booking.status === '借用中' ? 
+                                        `<input type="checkbox" class="checkbox" ${selectedBookings.includes(booking.id) ? 'checked' : ''} onchange="toggleSelection(${booking.id})">` : ''}
+                                    <strong>🏠 ${booking.roomName}</strong>
+                                </div>
+                                <div class="record-info">
+                                    <div><strong>🏢 ${booking.department}</strong></div>
+                                    <div><strong>👤 ${booking.borrower}</strong></div>
+                                    <div style="color: #666; font-size: 12px;">📞 分機: ${booking.extension}</div>
+                                </div>
+                                <div class="record-info">
+                                    <div>📅 ${booking.date}</div>
+                                    <div>⏰ ${booking.startTime}</div>
+                                </div>
+                                <div>
+                                    <span class="status-badge ${booking.status === '借用中' ? 'status-active' : 'status-returned'}">
+                                        ${booking.status === '借用中' ? '✅' : '🔄'} ${booking.status}
+                                    </span>
+                                    ${booking.returnTime ? `<div style="font-size: 11px; color: #666; margin-top: 4px;">🔄 ${booking.returnTime}</div>` : ''}
+                                </div>
+                                <div style="color: #999; font-size: 12px;">
+                                    ID: ${booking.id}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
 
-          const returnSelectedBookings = () => {
+        // 切換選擇狀態
+        function toggleSelection(bookingId) {
+            if (selectedBookings.includes(bookingId)) {
+                selectedBookings = selectedBookings.filter(id => id !== bookingId);
+            } else {
+                selectedBookings.push(bookingId);
+            }
+            updateRecordsDisplay();
+        }
+
+        // 歸還選中的記錄
+        function returnSelected() {
             if (selectedBookings.length === 0) {
-              alert('請先選擇要歸還的記錄！');
-              return;
+                alert('請先選擇要歸還的記錄！');
+                return;
             }
             
             const currentTime = new Date().toLocaleString();
-            const newBookings = bookings.map(booking => {
-              if (selectedBookings.includes(booking.id) && booking.status === '借用中') {
-                return {
-                  ...booking,
-                  status: '已歸還',
-                  returnTime: currentTime
-                };
-              }
-              return booking;
+            bookings = bookings.map(booking => {
+                if (selectedBookings.includes(booking.id) && booking.status === '借用中') {
+                    return {
+                        ...booking,
+                        status: '已歸還',
+                        returnTime: currentTime
+                    };
+                }
+                return booking;
             });
             
-            setBookings(newBookings);
-            setSelectedBookings([]);
-            alert(`已歸還 ${selectedBookings.length} 筆記錄！`);
-          };
-
-          // 手動新增記錄功能
-          const handleManualInputChange = (e) => {
-            const { name, value } = e.target;
-            setManualFormData(prev => ({
-              ...prev,
-              [name]: value
-            }));
-          };
-
-          const handleManualAdd = () => {
-            if (!manualFormData.roomId || !manualFormData.department || !manualFormData.borrower || !manualFormData.extension || !manualFormData.date || !manualFormData.startTime) {
-              alert('請填寫所有必填欄位！');
-              return;
-            }
-
-            const selectedRoom = rooms.find(room => room.id === parseInt(manualFormData.roomId));
-            
-            const hasConflict = bookings.some(booking => 
-              booking.roomId === parseInt(manualFormData.roomId) &&
-              booking.date === manualFormData.date &&
-              booking.startTime === manualFormData.startTime &&
-              booking.status === '借用中'
-            );
-
-            if (hasConflict) {
-              alert('該會議室在此時間已被預約！請選擇其他時間。');
-              return;
-            }
-
-            const newBooking = {
-              id: Date.now(),
-              roomId: parseInt(manualFormData.roomId),
-              roomName: selectedRoom.name,
-              department: manualFormData.department,
-              borrower: manualFormData.borrower,
-              extension: manualFormData.extension,
-              date: manualFormData.date,
-              startTime: manualFormData.startTime,
-              status: '借用中',
-              bookingTime: new Date().toLocaleString()
-            };
-
-            setBookings([...bookings, newBooking]);
-            setManualFormData({
-              roomId: '',
-              department: '',
-              borrower: '',
-              extension: '',
-              date: '',
-              startTime: ''
-            });
-            setShowManualAdd(false);
-            alert('手動記錄新增成功！');
-          };
-
-          // 使用者介面（前台）
-          if (systemMode === 'user') {
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-                {/* 標題 */}
-                <div className="bg-white shadow-md p-4 mb-4 relative">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">🏢</div>
-                    <h1 className="text-xl font-bold text-gray-800">會議室借用系統</h1>
-                    <p className="text-sm text-gray-600">請填寫借用資訊</p>
-                  </div>
-                  
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="absolute top-4 right-4 bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
-                  >
-                    🔧 管理員
-                  </button>
-                </div>
-
-                <div className="px-4 pb-4">
-                  {/* QR Code 提示卡片 */}
-                  {formData.roomId && (
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r-lg">
-                      <div className="flex items-center">
-                        <div className="text-xl mr-3">📱</div>
-                        <div>
-                          <p className="font-medium text-blue-800">
-                            您正在借用：{rooms.find(r => r.id === parseInt(formData.roomId))?.name}
-                          </p>
-                          <p className="text-sm text-blue-700">請繼續填寫其他資訊</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 借用表單 */}
-                  <div className="bg-white rounded-lg shadow-md">
-                    <div className="p-4 border-b border-gray-200">
-                      <h2 className="text-lg font-bold text-gray-800">📝 借用申請</h2>
-                      <p className="text-sm text-gray-600 mt-1">請填寫完整資訊</p>
-                    </div>
-                    
-                    <div className="p-4 space-y-4">
-                      {/* 會議室選擇 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          🏠 選擇會議室 <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          name="roomId"
-                          value={formData.roomId}
-                          onChange={handleInputChange}
-                          className={`w-full p-3 border-2 rounded-lg text-base focus:outline-none transition-colors ${
-                            formData.roomId 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-300 focus:border-blue-500'
-                          }`}
-                        >
-                          <option value="">請選擇會議室</option>
-                          {rooms.map(room => (
-                            <option key={room.id} value={room.id}>
-                              {room.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* 借用單位 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          🏢 借用單位 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="department"
-                          value={formData.department}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
-                          placeholder="請輸入單位名稱"
-                        />
-                      </div>
-
-                      {/* 借用人 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          👤 借用人 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="borrower"
-                          value={formData.borrower}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
-                          placeholder="請輸入您的姓名"
-                        />
-                      </div>
-
-                      {/* 分機號碼 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          📞 分機號碼 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          name="extension"
-                          value={formData.extension}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
-                          placeholder="請輸入分機號碼"
-                        />
-                      </div>
-
-                      {/* 借用日期 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          📅 借用日期 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          name="date"
-                          value={formData.date}
-                          onChange={handleInputChange}
-                          min={new Date().toISOString().split('T')[0]}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-
-                      {/* 借用時間 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ⏰ 借用時間 <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="time"
-                          name="startTime"
-                          value={formData.startTime}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {/* 提交按鈕 */}
-                    <div className="p-4 bg-gray-50 rounded-b-lg">
-                      <button
-                        onClick={handleUserBookingSubmit}
-                        className="w-full bg-green-500 text-white py-4 rounded-lg text-lg font-bold hover:bg-green-600 transition-colors shadow-lg"
-                      >
-                        ✅ 確認借用
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 使用提醒 */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="text-xl">💡</div>
-                      <div>
-                        <h3 className="font-medium text-yellow-800 mb-2">使用提醒</h3>
-                        <ul className="text-sm text-yellow-700 space-y-1">
-                          <li>• 填寫完成後請到櫃台索取鑰匙</li>
-                          <li>• 請準時使用會議室</li>
-                          <li>• 使用完畢請歸還鑰匙</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 管理員登入彈窗 */}
-                {showLoginModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm">
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-center text-gray-800 mb-6">
-                          🔐 管理員登入
-                        </h3>
-                        
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              👤 帳號
-                            </label>
-                            <input
-                              type="text"
-                              name="username"
-                              value={loginData.username}
-                              onChange={handleLoginInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入借用人姓名"
-                            />
-                          </div>
-
-                          {/* 分機號碼 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              分機號碼 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="tel"
-                              name="extension"
-                              value={manualFormData.extension}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入分機號碼"
-                            />
-                          </div>
-
-                          {/* 借用日期 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              借用日期 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="date"
-                              name="date"
-                              value={manualFormData.date}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-
-                          {/* 借用時間 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              借用時間 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="time"
-                              name="startTime"
-                              value={manualFormData.startTime}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-3 mt-6">
-                          <button
-                            onClick={() => {
-                              setShowManualAdd(false);
-                              setManualFormData({
-                                roomId: '',
-                                department: '',
-                                borrower: '',
-                                extension: '',
-                                date: '',
-                                startTime: ''
-                              });
-                            }}
-                            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                          >
-                            取消
-                          </button>
-                          <button
-                            onClick={handleManualAdd}
-                            className="flex-1 bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                          >
-                            新增
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
+            const count = selectedBookings.length;
+            selectedBookings = [];
+            updateRecordsDisplay();
+            alert(`已歸還 ${count} 筆記錄！`);
         }
 
-        // 渲染主要元件
-        ReactDOM.render(<MeetingRoomSystem />, document.getElementById('root'));
-                              placeholder="請輸入管理員帳號"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              🔒 密碼
-                            </label>
-                            <input
-                              type="password"
-                              name="password"
-                              value={loginData.password}
-                              onChange={handleLoginInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入密碼"
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleAdminLogin();
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-3 mt-6">
-                          <button
-                            onClick={() => {
-                              setShowLoginModal(false);
-                              setLoginData({ username: '', password: '' });
-                            }}
-                            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                          >
-                            取消
-                          </button>
-                          <button
-                            onClick={handleAdminLogin}
-                            className="flex-1 bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                          >
-                            登入
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          }
+        // 顯示手動新增彈窗
+        function showManualAdd() {
+            document.getElementById('manual-add-modal').classList.remove('hidden');
+        }
 
-          // 管理員介面（後台）
-          return (
-            <div className="min-h-screen bg-gray-50 p-4">
-              <div className="max-w-7xl mx-auto">
-                {/* 管理員標題 */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h1 className="text-3xl font-bold text-gray-800">
-                        🛠️ 會議室管理後台
-                      </h1>
-                      <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => setShowManualAdd(true)}
-                        className="bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors"
-                      >
-                        ➕ 手動新增
-                      </button>
-                      
-                      <button
-                        onClick={() => setSystemMode('user')}
-                        className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                      >
-                        👤 切換到使用者介面
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        // 隱藏手動新增彈窗
+        function hideManualAdd() {
+            document.getElementById('manual-add-modal').classList.add('hidden');
+            // 清空表單
+            document.getElementById('manual-roomId').value = '';
+            document.getElementById('manual-department').value = '';
+            document.getElementById('manual-borrower').value = '';
+            document.getElementById('manual-extension').value = '';
+            document.getElementById('manual-date').value = '';
+            document.getElementById('manual-startTime').value = '';
+        }
 
-                {/* 記錄管理頁面 */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-2xl font-bold mb-6 text-gray-800">📋 借用記錄管理</h2>
-                  
-                  {/* 記錄類型切換 */}
-                  <div className="flex space-x-4 mb-6">
-                    <button
-                      onClick={() => setRecordView('current')}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        recordView === 'current'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      🟢 目前借用中 ({bookings.filter(b => b.status === '借用中').length})
-                    </button>
-                    <button
-                      onClick={() => setRecordView('all')}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        recordView === 'all'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      📋 全部記錄 ({bookings.length})
-                    </button>
-                  </div>
-
-                  {(() => {
-                    let filteredBookings = bookings;
-                    if (recordView === 'current') {
-                      filteredBookings = bookings.filter(b => b.status === '借用中');
-                    }
-
-                    return filteredBookings.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="text-6xl mb-4">📭</div>
-                        <p className="text-xl text-gray-500">
-                          {recordView === 'current' ? '目前沒有借用中的記錄' : '目前沒有任何記錄'}
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* 管理操作按鈕 */}
-                        {recordView === 'current' && (
-                          <div className="mb-6 flex space-x-4 bg-gray-50 p-4 rounded-lg">
-                            <button
-                              onClick={returnSelectedBookings}
-                              className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors"
-                            >
-                              🔄 歸還選中的記錄
-                            </button>
-                            <div className="text-gray-600 flex items-center bg-white px-4 py-3 rounded-lg">
-                              已選擇: <span className="font-bold text-blue-600 ml-1">{selectedBookings.length}</span> 筆
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 記錄列表 */}
-                        <div className="space-y-4">
-                          {filteredBookings.map(booking => (
-                            <div 
-                              key={booking.id} 
-                              className={`border-2 rounded-lg p-6 transition-all ${
-                                selectedBookings.includes(booking.id)
-                                  ? 'border-blue-500 bg-blue-50'
-                                  : 'border-gray-200 hover:shadow-md'
-                              }`}
-                            >
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
-                                {/* 複選框 + 會議室 */}
-                                <div className="flex items-center space-x-3">
-                                  {recordView === 'current' && booking.status === '借用中' && (
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedBookings.includes(booking.id)}
-                                      onChange={() => handleCheckboxChange(booking.id)}
-                                      className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                  )}
-                                  <div>
-                                    <div className="text-lg font-bold text-blue-600">
-                                      🏠 {booking.roomName}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* 借用人資訊 */}
-                                <div>
-                                  <div className="font-medium text-gray-800">
-                                    🏢 {booking.department}
-                                  </div>
-                                  <div className="font-medium text-gray-800">
-                                    👤 {booking.borrower}
-                                  </div>
-                                  <div className="text-gray-600 text-sm">
-                                    📞 分機: {booking.extension}
-                                  </div>
-                                </div>
-
-                                {/* 時間資訊 */}
-                                <div>
-                                  <div className="text-gray-600 text-sm">
-                                    📅 {booking.date}
-                                  </div>
-                                  <div className="text-gray-600 text-sm">
-                                    ⏰ {booking.startTime}
-                                  </div>
-                                </div>
-
-                                {/* 狀態 */}
-                                <div>
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    booking.status === '借用中'
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-gray-100 text-gray-800'
-                                  }`}>
-                                    {booking.status === '借用中' ? '✅' : '🔄'} {booking.status}
-                                  </span>
-                                  {booking.returnTime && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      🔄 {booking.returnTime}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* ID */}
-                                <div className="text-sm text-gray-500">
-                                  ID: {booking.id}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* 手動新增記錄彈窗 */}
-                {showManualAdd && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-md">
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-center text-gray-800 mb-6">
-                          ➕ 手動新增記錄
-                        </h3>
-                        
-                        <div className="space-y-4">
-                          {/* 會議室選擇 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              會議室 <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              name="roomId"
-                              value={manualFormData.roomId}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                            >
-                              <option value="">請選擇會議室</option>
-                              {rooms.map(room => (
-                                <option key={room.id} value={room.id}>
-                                  {room.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* 借用單位 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              借用單位 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="department"
-                              value={manualFormData.department}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入單位名稱"
-                            />
-                          </div>
-
-                          {/* 借用人 */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              借用人 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="borrower"
-                              value={manualFormData.borrower}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+        // 提交手動新增
+        function submitManualAdd() {
+            const roomId = document.getElementById('manual-roomId').value;
+            const department = document.getElementById('manual-department').value;
+            const borrower = document.getElementById('manual-borrower').value;
+            const extension = document.getElementById('manual-extension').value;
+            const date = document.getElementById('manual-date').
