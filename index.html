@@ -305,20 +305,26 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').min = today;
             
-            // 檢查是否有同步資料
-            checkForSyncData();
-            
-            // 自動從雲端載入資料
-            await autoLoadFromCloud();
-            
-            updateRecordsList();
+            // 檢查是否有同步資料（URL參數）
+            if (!checkForSyncData()) {
+                // 自動從雲端載入資料
+                const hasCloudUpdate = await autoLoadFromCloud();
+                if (hasCloudUpdate) {
+                    updateRecordsList();
+                }
+            }
             
             console.log('初始化完成，目前記錄數:', allBookings.length);
 
-            // 每30秒自動檢查雲端更新
+            // 每15秒自動檢查雲端更新
             setInterval(async () => {
-                await autoLoadFromCloud();
-            }, 30000);
+                console.log('定期檢查雲端更新...');
+                const hasUpdate = await autoLoadFromCloud();
+                if (hasUpdate) {
+                    updateRecordsList();
+                    console.log('發現雲端更新，已刷新顯示');
+                }
+            }, 15000);
         };
 
         // 檢查 URL 中的同步資料
@@ -348,30 +354,14 @@
 
         // 載入記錄
         function loadBookings() {
-            try {
-                const saved = localStorage.getItem('keyBookings');
-                if (saved) {
-                    allBookings = JSON.parse(saved);
-                    console.log('載入記錄:', allBookings.length, '筆');
-                }
-            } catch (error) {
-                console.log('載入記錄失敗:', error);
-                allBookings = [];
-            }
+            // 這個函數現在由 autoLoadFromCloud 處理
+            console.log('loadBookings 已整合到 autoLoadFromCloud');
         }
 
         // 儲存記錄
         async function saveBookings() {
-            try {
-                localStorage.setItem('keyBookings', JSON.stringify(allBookings));
-                localStorage.setItem('lastUpdate', new Date().toISOString());
-                console.log('本地儲存記錄:', allBookings.length, '筆');
-                
-                // 自動同步到雲端
-                await autoSaveToCloud();
-            } catch (error) {
-                console.log('儲存記錄失敗:', error);
-            }
+            // 呼叫自動同步功能
+            await autoSaveToCloud();
         }
 
         // 提交借用
@@ -482,91 +472,84 @@
             updateRecordsList();
         }
 
-        // 簡化版自動同步 - 使用 GitHub Gist 作為免費雲端儲存
-        const GIST_ID = 'your_gist_id_here'; // 這裡需要設定您的 Gist ID
-        const GITHUB_TOKEN = 'your_github_token_here'; // 這裡需要設定您的 GitHub Token
-
+        // 簡單可靠的跨裝置同步 - 使用免費的 Firebase Realtime Database
+        const FIREBASE_URL = 'https://key-booking-system-default-rtdb.asia-southeast1.firebasedatabase.app';
+        
         // 自動儲存到雲端
         async function autoSaveToCloud() {
             // 先儲存到本地（備用）
-            saveBookings();
-            
-            // 如果沒有設定 GitHub 資訊，就只使用本地儲存
-            if (GIST_ID === 'your_gist_id_here' || GITHUB_TOKEN === 'your_github_token_here') {
-                console.log('雲端同步功能未設定，僅使用本地儲存');
-                return;
+            try {
+                localStorage.setItem('keyBookings', JSON.stringify(allBookings));
+                localStorage.setItem('lastUpdate', new Date().toISOString());
+                console.log('本地儲存成功，記錄數:', allBookings.length);
+            } catch (error) {
+                console.log('本地儲存失敗:', error);
             }
 
+            // 嘗試儲存到雲端
             try {
-                // 嘗試儲存到 GitHub Gist
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    method: 'PATCH',
+                const response = await fetch(`${FIREBASE_URL}/bookings.json`, {
+                    method: 'PUT',
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        files: {
-                            'bookings.json': {
-                                content: JSON.stringify({
-                                    bookings: allBookings,
-                                    lastUpdate: new Date().toISOString()
-                                })
-                            }
-                        }
+                        data: allBookings,
+                        lastUpdate: new Date().toISOString()
                     })
                 });
 
                 if (response.ok) {
-                    console.log('資料已自動同步到雲端');
+                    console.log('雲端同步成功');
                 } else {
                     throw new Error('雲端同步失敗');
                 }
             } catch (error) {
-                console.log('雲端同步失敗，使用本地儲存:', error.message);
+                console.log('雲端同步失敗，僅使用本地儲存:', error.message);
             }
         }
 
         // 自動從雲端載入
         async function autoLoadFromCloud() {
             // 先載入本地資料
-            loadBookings();
-
-            // 如果沒有設定 GitHub 資訊，就只使用本地儲存
-            if (GIST_ID === 'your_gist_id_here' || GITHUB_TOKEN === 'your_github_token_here') {
-                console.log('雲端同步功能未設定，僅使用本地儲存');
-                return;
+            try {
+                const saved = localStorage.getItem('keyBookings');
+                if (saved) {
+                    allBookings = JSON.parse(saved);
+                    console.log('本地載入成功，記錄數:', allBookings.length);
+                }
+            } catch (error) {
+                console.log('本地載入失敗:', error);
+                allBookings = [];
             }
 
+            // 嘗試從雲端載入更新的資料
             try {
-                // 嘗試從 GitHub Gist 載入
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                const response = await fetch(`${FIREBASE_URL}/bookings.json`);
                 
                 if (response.ok) {
-                    const gist = await response.json();
-                    const content = gist.files['bookings.json']?.content;
+                    const cloudData = await response.json();
                     
-                    if (content) {
-                        const data = JSON.parse(content);
-                        if (data.bookings && Array.isArray(data.bookings)) {
-                            // 比較本地和雲端的時間戳，使用較新的資料
-                            const cloudTime = new Date(data.lastUpdate).getTime();
-                            const localTime = new Date(localStorage.getItem('lastUpdate') || '0').getTime();
-                            
-                            if (cloudTime > localTime) {
-                                allBookings = data.bookings;
-                                saveBookings(); // 更新本地儲存
-                                console.log('已載入雲端較新資料');
-                                updateRecordsList();
-                            } else {
-                                console.log('本地資料較新，保持本地資料');
-                            }
+                    if (cloudData && cloudData.data && Array.isArray(cloudData.data)) {
+                        // 比較本地和雲端的時間戳
+                        const cloudTime = new Date(cloudData.lastUpdate || '0').getTime();
+                        const localTime = new Date(localStorage.getItem('lastUpdate') || '0').getTime();
+                        
+                        if (cloudTime > localTime) {
+                            allBookings = cloudData.data;
+                            localStorage.setItem('keyBookings', JSON.stringify(allBookings));
+                            localStorage.setItem('lastUpdate', cloudData.lastUpdate);
+                            console.log('雲端資料較新，已更新本地，記錄數:', allBookings.length);
+                            return true;
+                        } else {
+                            console.log('本地資料較新或相同，保持本地資料');
                         }
                     }
                 }
             } catch (error) {
                 console.log('雲端載入失敗，使用本地資料:', error.message);
             }
+            return false;
         }
 
         // 更新記錄列表
