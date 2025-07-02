@@ -588,26 +588,62 @@
         let selectedBookings = [];
         let currentView = 'current';
 
-        // 資料同步功能
-        function saveToStorage() {
+        // 簡單的雲端同步 - 使用免費的 Firebase Realtime Database
+        const firebaseConfig = {
+            databaseURL: "https://key-booking-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+
+        // 簡化的雲端同步函數
+        async function syncToCloud() {
             try {
-                localStorage.setItem('keyBookings', JSON.stringify(bookings));
-                localStorage.setItem('lastUpdate', new Date().getTime().toString());
+                const response = await fetch(`${firebaseConfig.databaseURL}/bookings.json`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookings)
+                });
+                
+                if (response.ok) {
+                    console.log('資料已同步至雲端');
+                } else {
+                    throw new Error('同步失敗');
+                }
             } catch (error) {
-                console.warn('儲存資料失敗:', error);
+                console.warn('雲端同步失敗，資料僅保存在本地');
+                // 至少保存到本地
+                localStorage.setItem('keyBookings', JSON.stringify(bookings));
             }
         }
 
-        function loadFromStorage() {
+        async function loadFromCloud() {
+            try {
+                const response = await fetch(`${firebaseConfig.databaseURL}/bookings.json`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && Array.isArray(data)) {
+                        bookings = data;
+                        localStorage.setItem('keyBookings', JSON.stringify(bookings));
+                        console.log('已載入雲端資料');
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.warn('載入雲端資料失敗');
+            }
+            
+            // 雲端失敗時使用本地資料
             try {
                 const saved = localStorage.getItem('keyBookings');
                 if (saved) {
                     bookings = JSON.parse(saved);
+                    return true;
                 }
             } catch (error) {
-                console.warn('載入資料失敗:', error);
-                bookings = [];
+                console.warn('載入本地資料失敗');
             }
+            
+            bookings = [];
+            return false;
         }
 
         const rooms = {
@@ -621,9 +657,9 @@
         };
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 載入儲存的資料
-            loadFromStorage();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 載入資料
+            await loadFromCloud();
             
             // 設定最小日期為今天
             const today = new Date().toISOString().split('T')[0];
@@ -636,35 +672,15 @@
                 }
             });
 
-            // 定期檢查資料更新 (每5秒)
-            setInterval(checkForUpdates, 5000);
-        });
-
-        // 檢查資料更新
-        function checkForUpdates() {
-            try {
-                const lastUpdate = localStorage.getItem('lastUpdate');
-                const currentTime = new Date().getTime();
-                
-                // 如果有新的更新，重新載入資料
-                if (lastUpdate && currentTime - parseInt(lastUpdate) < 10000) {
-                    const saved = localStorage.getItem('keyBookings');
-                    if (saved) {
-                        const newBookings = JSON.parse(saved);
-                        // 只有在資料真的不同時才更新
-                        if (JSON.stringify(newBookings) !== JSON.stringify(bookings)) {
-                            bookings = newBookings;
-                            // 如果在管理員介面，更新顯示
-                            if (!document.getElementById('admin-interface').classList.contains('hidden')) {
-                                updateRecordsDisplay();
-                            }
-                        }
-                    }
+            // 每30秒自動同步一次
+            setInterval(async () => {
+                await loadFromCloud();
+                // 如果在管理員介面，更新顯示
+                if (!document.getElementById('admin-interface').classList.contains('hidden')) {
+                    updateRecordsDisplay();
                 }
-            } catch (error) {
-                console.warn('檢查更新失敗:', error);
-            }
-        }
+            }, 30000);
+        });
 
         // 顯示登入彈窗
         function showLogin() {
@@ -695,10 +711,10 @@
         }
 
         // 切換到管理員介面
-        function switchToAdmin() {
+        async function switchToAdmin() {
             document.getElementById('user-interface').classList.add('hidden');
             document.getElementById('admin-interface').classList.remove('hidden');
-            loadFromStorage(); // 重新載入最新資料
+            await loadFromCloud(); // 重新載入最新資料
             updateRecordsDisplay();
         }
 
@@ -849,7 +865,7 @@
         }
 
         // 歸還選中的記錄
-        function returnSelected() {
+        async function returnSelected() {
             if (selectedBookings.length === 0) {
                 alert('請先選擇要歸還的記錄！');
                 return;
@@ -869,7 +885,7 @@
             
             const count = selectedBookings.length;
             selectedBookings = [];
-            saveToStorage(); // 儲存變更
+            await syncToCloud(); // 同步到雲端
             updateRecordsDisplay();
             alert(`已歸還 ${count} 筆記錄！`);
         }
