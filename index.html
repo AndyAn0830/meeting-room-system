@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -28,15 +29,7 @@
             { id: 7, name: '協力講堂' }
           ]);
 
-          // 雲端資料庫設定 - 使用 GitHub Gist 作為免費雲端儲存
-          const GITHUB_TOKEN = 'ghp_example'; // 暫時留空，使用匿名模式
-          const GIST_ID = ''; // 自動創建
-
-          // 雲端同步狀態
-          const [syncStatus, setSyncStatus] = useState('success'); // 預設為成功，避免顯示離線
-          const [lastSyncTime, setLastSyncTime] = useState(null);
-
-          // 借用記錄 - 優先使用本地，背景同步
+          // 借用記錄 - 只使用 localStorage
           const [bookings, setBookings] = useState(() => {
             try {
               const saved = localStorage.getItem('meetingRoomBookings');
@@ -45,93 +38,8 @@
               return [];
             }
           });
-
-          // 簡化的雲端同步（背景執行，不影響使用者體驗）
-          const syncToCloud = async (data) => {
-            try {
-              // 背景同步，不顯示載入狀態
-              const response = await fetch('https://api.github.com/gists', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/vnd.github.v3+json'
-                },
-                body: JSON.stringify({
-                  description: 'Meeting Room Bookings Data',
-                  public: false,
-                  files: {
-                    'bookings.json': {
-                      content: JSON.stringify({
-                        bookings: data,
-                        lastUpdate: new Date().toISOString()
-                      })
-                    }
-                  }
-                })
-              });
-
-              if (response.ok) {
-                setLastSyncTime(new Date().toLocaleString());
-                setSyncStatus('success');
-              }
-            } catch (error) {
-              // 靜默失敗，不影響使用者體驗
-              console.log('背景同步失敗，繼續使用本地儲存');
-            }
-          };
-
-          // 儲存到本地並背景同步
-          React.useEffect(() => {
-            if (bookings.length >= 0) {
-              try {
-                localStorage.setItem('meetingRoomBookings', JSON.stringify(bookings));
-                // 背景同步到雲端
-                if (bookings.length > 0) {
-                  syncToCloud(bookings);
-                }
-              } catch (error) {
-                console.log('儲存失敗');
-              }
-            }
-          }, [bookings]);
-
-          // 匯出資料功能
-          const exportData = () => {
-            const dataStr = JSON.stringify(bookings, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `會議室借用記錄_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-          };
-
-          // 匯入資料功能
-          const importData = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                try {
-                  const importedData = JSON.parse(e.target.result);
-                  setBookings(importedData);
-                  alert('資料匯入成功！');
-                } catch (error) {
-                  alert('匯入失敗，檔案格式錯誤');
-                }
-              };
-              reader.readAsText(file);
-            }
-          };
-
-          // 雲端同步提示
-          const showSyncInfo = () => {
-            alert(`📱💻 資料同步說明：\n\n由於技術限制，手機和電腦的記錄是分開儲存的。\n\n建議做法：\n• 同事用手機借用\n• 管理員用固定電腦查看記錄\n• 或使用「匯出記錄」功能備份資料`);
-          };
           
-          // 表單資料 - 從 URL 參數自動填入會議室
+          // 表單資料
           const [formData, setFormData] = useState(() => {
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
@@ -146,7 +54,7 @@
             };
           });
 
-          // 系統模式：user(使用者) 或 admin(管理員)
+          // 系統模式
           const [systemMode, setSystemMode] = useState('user');
           
           // 管理員登入狀態
@@ -157,11 +65,8 @@
           });
           
           // 管理員頁面
-          const [adminView, setAdminView] = useState('records');
           const [recordView, setRecordView] = useState('current');
           const [selectedBookings, setSelectedBookings] = useState([]);
-          
-          // 手動新增記錄的表單
           const [showManualAdd, setShowManualAdd] = useState(false);
           const [manualFormData, setManualFormData] = useState({
             roomId: '',
@@ -172,21 +77,14 @@
             startTime: ''
           });
 
-          // 儲存到 localStorage - 移除，改為雲端同步
-          // React.useEffect(() => {
-          //   localStorage.setItem('meetingRoomBookings', JSON.stringify(bookings));
-          // }, [bookings]);
-
-          // 手動重新載入資料
-          const handleRefreshData = () => {
-            location.reload(); // 重新整理頁面載入最新資料
-          };
-
-          // 強制同步到雲端
-          const handleForcSync = () => {
-            syncToCloud(bookings);
-            alert('同步完成！');
-          };
+          // 儲存到 localStorage
+          React.useEffect(() => {
+            try {
+              localStorage.setItem('meetingRoomBookings', JSON.stringify(bookings));
+            } catch (error) {
+              console.log('儲存失敗');
+            }
+          }, [bookings]);
 
           // 處理登入表單輸入
           const handleLoginInputChange = (e) => {
@@ -203,9 +101,9 @@
               setSystemMode('admin');
               setShowLoginModal(false);
               setLoginData({ username: '', password: '' });
-              alert('登入成功！歡迎使用管理系統');
+              alert('登入成功！');
             } else {
-              alert('帳號或密碼錯誤！請重新輸入');
+              alert('帳號或密碼錯誤！');
               setLoginData({ username: '', password: '' });
             }
           };
@@ -219,17 +117,14 @@
             }));
           };
 
-          // 使用者借用提交 - 改良版，加入通知功能
+          // 使用者借用提交
           const handleUserBookingSubmit = () => {
-            console.log('開始處理借用申請...');
-            
             if (!formData.roomId || !formData.department || !formData.borrower || !formData.extension || !formData.date || !formData.startTime) {
               alert('請填寫所有必填欄位！');
               return;
             }
 
             const selectedRoom = rooms.find(room => room.id === parseInt(formData.roomId));
-            console.log('選擇的會議室:', selectedRoom);
             
             const hasConflict = bookings.some(booking => 
               booking.roomId === parseInt(formData.roomId) &&
@@ -253,35 +148,10 @@
               date: formData.date,
               startTime: formData.startTime,
               status: '借用中',
-              bookingTime: new Date().toLocaleString(),
-              deviceType: window.innerWidth > 768 ? 'desktop' : 'mobile'
+              bookingTime: new Date().toLocaleString()
             };
 
-            console.log('新增借用記錄:', newBooking);
-
-            try {
-              const newBookings = [...bookings, newBooking];
-              setBookings(newBookings);
-              console.log('借用記錄已更新，總共', newBookings.length, '筆');
-              
-              // 立即驗證是否儲存成功
-              setTimeout(() => {
-                const savedData = localStorage.getItem('meetingRoomBookings');
-                const parsedData = savedData ? JSON.parse(savedData) : [];
-                console.log('驗證儲存結果:', parsedData.length, '筆記錄');
-                
-                if (parsedData.length > bookings.length) {
-                  alert(`🎉 借用成功！\n\n✅ 會議室：${selectedRoom.name}\n🏢 借用單位：${formData.department}\n👤 借用人：${formData.borrower}\n📞 分機：${formData.extension}\n📅 日期：${formData.date}\n⏰ 時間：${formData.startTime}\n\n請到櫃台索取鑰匙，並告知工作人員您的借用資訊。`);
-                } else {
-                  alert('借用成功！請到櫃台索取鑰匙。');
-                }
-              }, 100);
-              
-            } catch (error) {
-              console.error('新增記錄失敗:', error);
-              alert('❌ 借用失敗，請重試或聯絡管理員');
-              return;
-            }
+            setBookings([...bookings, newBooking]);
             
             setFormData({
               roomId: '',
@@ -291,6 +161,8 @@
               date: '',
               startTime: ''
             });
+
+            alert(`借用成功！\n\n會議室：${selectedRoom.name}\n借用單位：${formData.department}\n借用人：${formData.borrower}\n\n請到櫃台索取鑰匙。`);
           };
 
           // 管理員功能
@@ -364,8 +236,7 @@
               date: manualFormData.date,
               startTime: manualFormData.startTime,
               status: '借用中',
-              bookingTime: new Date().toLocaleString(),
-              deviceType: 'manual-admin'
+              bookingTime: new Date().toLocaleString()
             };
 
             setBookings([...bookings, newBooking]);
@@ -381,11 +252,42 @@
             alert('手動記錄新增成功！');
           };
 
+          // 匯出資料功能
+          const exportData = () => {
+            const dataStr = JSON.stringify(bookings, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `會議室借用記錄_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+          };
+
+          // 匯入資料功能
+          const importData = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                try {
+                  const importedData = JSON.parse(e.target.result);
+                  setBookings(importedData);
+                  alert('資料匯入成功！');
+                } catch (error) {
+                  alert('匯入失敗，檔案格式錯誤');
+                }
+              };
+              reader.readAsText(file);
+            }
+          };
+
           // 使用者介面（前台）
           if (systemMode === 'user') {
             return (
               <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-                {/* 手機版標題 */}
+                {/* 標題 */}
                 <div className="bg-white shadow-md p-4 mb-4 relative">
                   <div className="text-center">
                     <div className="text-4xl mb-2">🏢</div>
@@ -624,56 +526,49 @@
           return (
             <div className="min-h-screen bg-gray-50 p-4">
               <div className="max-w-7xl mx-auto">
-                    {/* 管理員標題 */}
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h1 className="text-3xl font-bold text-gray-800">
-                            🛠️ 會議室管理後台
-                          </h1>
-                          <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => setShowManualAdd(true)}
-                            className="bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors"
-                          >
-                            ➕ 手動新增
-                          </button>
-                          
-                          <button
-                            onClick={handleRefreshData}
-                            className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors"
-                          >
-                            🔄 重新整理
-                          </button>
-                          
-                          <button
-                            onClick={exportData}
-                            className="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors"
-                          >
-                            📤 匯出記錄
-                          </button>
-                          
-                          <label className="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors cursor-pointer">
-                            📥 匯入記錄
-                            <input
-                              type="file"
-                              accept=".json"
-                              onChange={importData}
-                              className="hidden"
-                            />
-                          </label>
-                          
-                          <button
-                            onClick={() => setSystemMode('user')}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                          >
-                            👤 切換到使用者介面
-                          </button>
-                        </div>
-                      </div>
+                {/* 管理員標題 */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-800">
+                        🛠️ 會議室管理後台
+                      </h1>
+                      <p className="text-gray-600 mt-1">管理員專用 - 記錄查看與歸還功能</p>
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setShowManualAdd(true)}
+                        className="bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors"
+                      >
+                        ➕ 手動新增
+                      </button>
+                      
+                      <button
+                        onClick={exportData}
+                        className="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors"
+                      >
+                        📤 匯出記錄
+                      </button>
+                      
+                      <label className="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors cursor-pointer">
+                        📥 匯入記錄
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={importData}
+                          className="hidden"
+                        />
+                      </label>
+                      
+                      <button
+                        onClick={() => setSystemMode('user')}
+                        className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                      >
+                        👤 切換到使用者介面
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
                 {/* 記錄管理頁面 */}
                 <div className="bg-white rounded-lg shadow-md p-6">
@@ -819,138 +714,4 @@
                   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-2xl w-full max-w-md">
                       <div className="p-6">
-                        <h3 className="text-xl font-bold text-center text-gray-800 mb-6">
-                          ➕ 手動新增借用記錄
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4 text-center">
-                          如果同事用手機借用但記錄沒同步，可在此手動新增
-                        </p>
-                        
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              🏠 會議室 <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              name="roomId"
-                              value={manualFormData.roomId}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                            >
-                              <option value="">請選擇會議室</option>
-                              {rooms.map(room => (
-                                <option key={room.id} value={room.id}>
-                                  {room.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              🏢 借用單位 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="department"
-                              value={manualFormData.department}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入單位名稱"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              👤 借用人 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="borrower"
-                              value={manualFormData.borrower}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入借用人姓名"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              📞 分機號碼 <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="extension"
-                              value={manualFormData.extension}
-                              onChange={handleManualInputChange}
-                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              placeholder="請輸入分機號碼"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                📅 日期 <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="date"
-                                name="date"
-                                value={manualFormData.date}
-                                onChange={handleManualInputChange}
-                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                ⏰ 時間 <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="time"
-                                name="startTime"
-                                value={manualFormData.startTime}
-                                onChange={handleManualInputChange}
-                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-3 mt-6">
-                          <button
-                            onClick={() => {
-                              setShowManualAdd(false);
-                              setManualFormData({
-                                roomId: '',
-                                department: '',
-                                borrower: '',
-                                extension: '',
-                                date: '',
-                                startTime: ''
-                              });
-                            }}
-                            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                          >
-                            取消
-                          </button>
-                          <button
-                            onClick={handleManualAdd}
-                            className="flex-1 bg-indigo-500 text-white py-3 rounded-lg font-medium hover:bg-indigo-600 transition-colors"
-                          >
-                            新增記錄
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        }
-
-        ReactDOM.render(<MeetingRoomSystem />, document.getElementById('root'));
-    </script>
-</body>
-</html>
+                        <h3 className="text-xl font-
