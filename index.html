@@ -15,72 +15,31 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
             padding: 20px;
         }
         
-        .header {
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
             background: white;
             border-radius: 12px;
             padding: 24px;
-            text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
         }
         
         .header h1 {
             font-size: 24px;
             color: #1976d2;
             margin: 12px 0 8px 0;
-        }
-        
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .admin-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #666;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .admin-btn:hover {
-            background: #555;
-        }
-        
-        .form-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        .form-header {
-            background: #f8f9fa;
-            padding: 20px;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .form-header h2 {
-            color: #333;
-            font-size: 18px;
-        }
-        
-        .form-body {
-            padding: 24px;
         }
         
         .form-group {
@@ -105,7 +64,6 @@
             border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s;
         }
         
         .form-control:focus {
@@ -130,212 +88,44 @@
             background: #45a049;
         }
         
-        .reminder {
-            background: #fff8e1;
-            border: 1px solid #ffecb3;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 24px;
-        }
-        
-        .reminder h3 {
-            color: #f57f17;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        
-        .reminder ul {
-            color: #f57f17;
-            font-size: 14px;
-            margin-left: 20px;
-        }
-        
-        .reminder li {
-            margin-bottom: 4px;
-        }
-        
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal h3 {
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 18px;
-            color: #333;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-        
         .btn-secondary {
             background: #6c757d;
-            flex: 1;
         }
         
         .btn-secondary:hover {
             background: #5a6268;
         }
         
-        .btn-primary {
-            background: #1976d2;
-            flex: 1;
-        }
-        
-        .btn-primary:hover {
-            background: #1565c0;
-        }
-        
-        .admin-container {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        
-        .admin-title h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        
-        .admin-title p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .admin-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-indigo {
-            background: #6366f1;
-            color: white;
-        }
-        
-        .btn-indigo:hover {
-            background: #5856eb;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .tab {
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .tab.active {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .tab:not(.active) {
-            background: #e9ecef;
-            color: #666;
-        }
-        
-        .tab:not(.active):hover {
-            background: #dee2e6;
-        }
-        
-        .records-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        .records {
+            margin-top: 30px;
         }
         
         .record-item {
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #f9f9f9;
         }
         
-        .record-item:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .record-header {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 8px;
         }
         
-        .record-item.selected {
-            border-color: #1976d2;
-            background: #e3f2fd;
-        }
-        
-        .record-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        
-        @media (min-width: 768px) {
-            .record-grid {
-                grid-template-columns: auto 1fr auto auto auto;
-                align-items: center;
-            }
-        }
-        
-        .record-info {
+        .record-details {
             font-size: 14px;
+            color: #666;
         }
         
-        .record-info strong {
-            color: #333;
-        }
-        
-        .status-badge {
+        .status {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+            margin-top: 8px;
         }
         
         .status-active {
@@ -343,209 +133,47 @@
             color: #2e7d32;
         }
         
-        .status-returned {
-            background: #f5f5f5;
-            color: #666;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        
-        .management-actions {
-            background: #f8f9fa;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        
-        .btn-warning {
-            background: #ff9800;
-            color: white;
-            padding: 12px 24px;
-            font-weight: bold;
-        }
-        
-        .btn-warning:hover {
-            background: #f57c00;
-        }
-        
-        .selected-count {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            color: #666;
-        }
-        
-        .hidden {
+        .admin-panel {
             display: none;
         }
         
-        .checkbox {
-            width: 18px;
-            height: 18px;
-            margin-right: 12px;
+        .show {
+            display: block;
+        }
+        
+        .admin-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="container">
-            <!-- 使用者介面 -->
-            <div id="user-interface">
-                <!-- 標題 -->
-                <div class="header">
-                    <div style="font-size: 32px;">🏢</div>
-                    <h1>鑰匙借用系統</h1>
-                    <p>請填寫借用資訊</p>
-                    <button class="admin-btn" onclick="showLogin()">🔧 管理員</button>
-                </div>
-
-                <!-- 借用表單 -->
-                <div class="form-container">
-                    <div class="form-header">
-                        <h2>📝 借用申請</h2>
-                        <p style="margin-top: 4px; color: #666; font-size: 14px;">請填寫完整資訊</p>
-                    </div>
-                    
-                    <div class="form-body">
-                        <div class="form-group">
-                            <label>🏠 選擇會議室 <span class="required">*</span></label>
-                            <select id="roomId" class="form-control">
-                                <option value="">請選擇會議室</option>
-                                <option value="1">第一會議室</option>
-                                <option value="2">二期講堂</option>
-                                <option value="3">合心會議室</option>
-                                <option value="4">和氣會議室</option>
-                                <option value="5">互愛會議室</option>
-                                <option value="6">貴賓室</option>
-                                <option value="7">協力講堂</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>🏢 借用單位 <span class="required">*</span></label>
-                            <input type="text" id="department" class="form-control" placeholder="請輸入單位名稱">
-                        </div>
-
-                        <div class="form-group">
-                            <label>👤 借用人 <span class="required">*</span></label>
-                            <input type="text" id="borrower" class="form-control" placeholder="請輸入您的姓名">
-                        </div>
-
-                        <div class="form-group">
-                            <label>📞 分機號碼 <span class="required">*</span></label>
-                            <input type="tel" id="extension" class="form-control" placeholder="請輸入分機號碼">
-                        </div>
-
-                        <div class="form-group">
-                            <label>📅 借用日期 <span class="required">*</span></label>
-                            <input type="date" id="date" class="form-control">
-                        </div>
-
-                        <div class="form-group">
-                            <label>⏰ 借用時間 <span class="required">*</span></label>
-                            <input type="time" id="startTime" class="form-control">
-                        </div>
-
-                        <button class="btn" onclick="submitBooking()">✅ 確認借用</button>
-                    </div>
-                </div>
-
-                <!-- 使用提醒 -->
-                <div class="reminder">
-                    <h3>💡 使用提醒</h3>
-                                            <ul>
-                        <li>借用會議室鑰匙時請確認編號</li>
-                        <li>請妥善保管借用的鑰匙</li>
-                        <li>使用完畢請盡速歸還</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 管理員介面 -->
-            <div id="admin-interface" class="hidden">
-                <div class="admin-container">
-                    <div class="admin-header">
-                        <div class="admin-title">
-                            <h1>🛠️ 鑰匙管理後台</h1>
-                            <p>管理員專用 - 記錄查看與歸還功能</p>
-                        </div>
-                        <div class="admin-buttons">
-                            <button class="btn-small btn-indigo" onclick="showManualAdd()">➕ 手動新增</button>
-                            <button class="btn-small" style="background: #4caf50; color: white;" onclick="generateQRCode()">📱 生成二維碼</button>
-                            <button class="btn-small btn-secondary" onclick="switchToUser()">👤 切換到使用者介面</button>
-                        </div>
-                    </div>
-
-                    <h2 style="margin-bottom: 24px; color: #333;">📋 鑰匙借用記錄管理</h2>
-                    
-                    <!-- 記錄類型切換 -->
-                    <div class="tabs">
-                        <button class="tab active" onclick="switchTab('current')" id="current-tab">
-                            🟢 目前借用中 (<span id="current-count">0</span>)
-                        </button>
-                        <button class="tab" onclick="switchTab('all')" id="all-tab">
-                            📋 全部記錄 (<span id="all-count">0</span>)
-                        </button>
-                    </div>
-
-                    <!-- 管理操作 -->
-                    <div id="management-actions" class="management-actions hidden">
-                        <button class="btn btn-warning" onclick="returnSelected()">🔄 歸還選中的記錄</button>
-                        <div class="selected-count">
-                            已選擇: <span id="selected-count" style="font-weight: bold; color: #1976d2;">0</span> 筆
-                        </div>
-                    </div>
-
-                    <!-- 記錄列表 -->
-                    <div id="records-container">
-                        <div class="empty-state">
-                            <div class="icon">📭</div>
-                            <p>目前沒有任何記錄</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="container">
+        <!-- 標題 -->
+        <div class="card">
+            <div class="header" style="position: relative;">
+                <div style="font-size: 32px;">🏢</div>
+                <h1>鑰匙借用系統</h1>
+                <p style="color: #666; font-size: 14px;">請填寫借用資訊</p>
+                <button class="admin-btn" onclick="toggleAdmin()">🔧 管理員</button>
             </div>
         </div>
-    </div>
 
-    <!-- 登入彈窗 -->
-    <div id="login-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>🔐 管理員登入</h3>
+        <!-- 使用者借用表單 -->
+        <div id="user-form" class="card">
+            <h2 style="margin-bottom: 20px; color: #333;">📝 借用申請</h2>
+            
             <div class="form-group">
-                <label>👤 帳號</label>
-                <input type="text" id="username" class="form-control" placeholder="請輸入管理員帳號">
-            </div>
-            <div class="form-group">
-                <label>🔒 密碼</label>
-                <input type="password" id="password" class="form-control" placeholder="請輸入密碼">
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="hideLogin()">取消</button>
-                <button class="btn btn-primary" onclick="login()">登入</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 手動新增彈窗 -->
-    <div id="manual-add-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>➕ 手動新增記錄</h3>
-            <div class="form-group">
-                <label>會議室 <span class="required">*</span></label>
-                <select id="manual-roomId" class="form-control">
+                <label>🏠 選擇會議室 <span class="required">*</span></label>
+                <select id="roomId" class="form-control">
                     <option value="">請選擇會議室</option>
                     <option value="1">第一會議室</option>
                     <option value="2">二期講堂</option>
@@ -556,224 +184,158 @@
                     <option value="7">協力講堂</option>
                 </select>
             </div>
+
             <div class="form-group">
-                <label>借用單位 <span class="required">*</span></label>
-                <input type="text" id="manual-department" class="form-control" placeholder="請輸入單位名稱">
+                <label>🏢 借用單位 <span class="required">*</span></label>
+                <input type="text" id="department" class="form-control" placeholder="請輸入單位名稱">
             </div>
+
             <div class="form-group">
-                <label>借用人 <span class="required">*</span></label>
-                <input type="text" id="manual-borrower" class="form-control" placeholder="請輸入借用人姓名">
+                <label>👤 借用人 <span class="required">*</span></label>
+                <input type="text" id="borrower" class="form-control" placeholder="請輸入您的姓名">
             </div>
+
             <div class="form-group">
-                <label>分機號碼 <span class="required">*</span></label>
-                <input type="tel" id="manual-extension" class="form-control" placeholder="請輸入分機號碼">
+                <label>📞 分機號碼 <span class="required">*</span></label>
+                <input type="tel" id="extension" class="form-control" placeholder="請輸入分機號碼">
             </div>
+
             <div class="form-group">
-                <label>借用日期 <span class="required">*</span></label>
-                <input type="date" id="manual-date" class="form-control">
+                <label>📅 借用日期 <span class="required">*</span></label>
+                <input type="date" id="date" class="form-control">
             </div>
+
             <div class="form-group">
-                <label>借用時間 <span class="required">*</span></label>
-                <input type="time" id="manual-startTime" class="form-control">
+                <label>⏰ 借用時間 <span class="required">*</span></label>
+                <input type="time" id="startTime" class="form-control">
             </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="hideManualAdd()">取消</button>
-                <button class="btn btn-primary" onclick="submitManualAdd()">新增</button>
+
+            <button class="btn" onclick="submitBooking()">✅ 確認借用</button>
+        </div>
+
+        <!-- 管理員面板 -->
+        <div id="admin-panel" class="card admin-panel">
+            <h2 style="margin-bottom: 20px; color: #333;">🛠️ 管理員面板</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="toggleAdmin()" style="width: auto; margin-right: 10px;">👤 返回借用</button>
+                <button class="btn btn-secondary" onclick="clearAllData()" style="width: auto; background: #dc3545;">🗑️ 清除所有記錄</button>
             </div>
+            
+            <div id="records-list">
+                <p style="text-align: center; color: #666; padding: 40px;">目前沒有借用記錄</p>
+            </div>
+        </div>
+
+        <!-- 提醒 -->
+        <div class="card" style="background: #fff8e1; border: 1px solid #ffecb3;">
+            <h3 style="color: #f57f17; margin-bottom: 12px;">💡 使用提醒</h3>
+            <ul style="color: #f57f17; font-size: 14px; margin-left: 20px;">
+                <li>借用會議室鑰匙時請確認編號</li>
+                <li>請妥善保管借用的鑰匙</li>
+                <li>使用完畢請盡速歸還</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        // 全域變數
-        let bookings = [];
-        let selectedBookings = [];
-        let currentView = 'current';
-
-        // 簡單可靠的資料儲存 - 只使用 localStorage
-        function saveData() {
-            try {
-                localStorage.setItem('keyBookings', JSON.stringify(bookings));
-                localStorage.setItem('lastUpdate', new Date().getTime().toString());
-            } catch (error) {
-                console.warn('儲存資料失敗:', error);
-            }
-        }
-
-        function loadData() {
-            try {
-                const saved = localStorage.getItem('keyBookings');
-                if (saved) {
-                    bookings = JSON.parse(saved);
-                    return true;
-                }
-            } catch (error) {
-                console.warn('載入資料失敗:', error);
-            }
-            bookings = [];
-            return false;
-        }
-
-        // 生成簡單的二維碼供手機掃描
-        function generateQRCode() {
-            const data = btoa(JSON.stringify(bookings));
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?sync=' + data)}`;
-            
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.8); z-index: 9999;
-                display: flex; align-items: center; justify-content: center;
-                padding: 20px;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 300px;">
-                    <h3 style="margin-bottom: 20px; color: #333;">📱 手機掃描查看記錄</h3>
-                    <img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">
-                    <p style="margin: 15px 0; color: #666; font-size: 14px;">用手機相機掃描此二維碼</p>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                        關閉
-                    </button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        }
-
-        // 從URL參數載入同步資料
-        function checkSyncData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const syncData = urlParams.get('sync');
-            
-            if (syncData) {
-                try {
-                    const decodedData = JSON.parse(atob(syncData));
-                    if (Array.isArray(decodedData)) {
-                        bookings = decodedData;
-                        saveData();
-                        
-                        // 清除URL參數，避免重複載入
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        
-                        alert(`已同步資料！共 ${bookings.length} 筆記錄。`);
-                        return true;
-                    }
-                } catch (error) {
-                    console.warn('同步資料格式錯誤:', error);
-                }
-            }
-            return false;
-        }
-
-        const rooms = {
-            1: '第一會議室',
-            2: '二期講堂',
-            3: '合心會議室',
-            4: '和氣會議室',
-            5: '互愛會議室',
-            6: '貴賓室',
-            7: '協力講堂'
+        // 簡化版本 - 只保留核心功能
+        
+        // 資料儲存
+        let allBookings = [];
+        
+        // 會議室對應
+        const roomNames = {
+            '1': '第一會議室',
+            '2': '二期講堂', 
+            '3': '合心會議室',
+            '4': '和氣會議室',
+            '5': '互愛會議室',
+            '6': '貴賓室',
+            '7': '協力講堂'
         };
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 先檢查是否有同步資料
-            if (!checkSyncData()) {
-                // 沒有同步資料就載入本地資料
-                loadData();
-            }
+        window.onload = function() {
+            console.log('頁面載入完成');
             
-            // 設定最小日期為今天
+            // 設定今天為最小日期
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').min = today;
             
-            // 綁定 Enter 鍵登入
-            document.getElementById('password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
+            // 載入已儲存的資料
+            loadBookings();
+            updateRecordsList();
+            
+            console.log('初始化完成，目前記錄數:', allBookings.length);
+        };
+
+        // 載入記錄
+        function loadBookings() {
+            try {
+                const saved = localStorage.getItem('keyBookings');
+                if (saved) {
+                    allBookings = JSON.parse(saved);
+                    console.log('載入記錄:', allBookings.length, '筆');
                 }
-            });
-        });
-
-        // 顯示登入彈窗
-        function showLogin() {
-            document.getElementById('login-modal').classList.remove('hidden');
-        }
-
-        // 隱藏登入彈窗
-        function hideLogin() {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        // 管理員登入
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (username === 'hl1234' && password === 'admin1234') {
-                hideLogin();
-                switchToAdmin();
-                alert('登入成功！');
-            } else {
-                alert('帳號或密碼錯誤！');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
+            } catch (error) {
+                console.log('載入記錄失敗:', error);
+                allBookings = [];
             }
         }
 
-        // 切換到管理員介面
-        function switchToAdmin() {
-            document.getElementById('user-interface').classList.add('hidden');
-            document.getElementById('admin-interface').classList.remove('hidden');
-            loadData(); // 重新載入最新資料
-            updateRecordsDisplay();
+        // 儲存記錄
+        function saveBookings() {
+            try {
+                localStorage.setItem('keyBookings', JSON.stringify(allBookings));
+                console.log('儲存記錄:', allBookings.length, '筆');
+            } catch (error) {
+                console.log('儲存記錄失敗:', error);
+            }
         }
 
-        // 切換到使用者介面
-        function switchToUser() {
-            document.getElementById('admin-interface').classList.add('hidden');
-            document.getElementById('user-interface').classList.remove('hidden');
-            selectedBookings = [];
-        }
-
-        // 提交借用申請
+        // 提交借用
         function submitBooking() {
+            console.log('開始提交借用...');
+            
+            // 取得表單資料
             const roomId = document.getElementById('roomId').value;
             const department = document.getElementById('department').value;
             const borrower = document.getElementById('borrower').value;
             const extension = document.getElementById('extension').value;
             const date = document.getElementById('date').value;
             const startTime = document.getElementById('startTime').value;
+            
+            console.log('表單資料:', {roomId, department, borrower, extension, date, startTime});
 
-            // 驗證必填欄位
+            // 檢查必填欄位
             if (!roomId || !department || !borrower || !extension || !date || !startTime) {
                 alert('請填寫所有必填欄位！');
                 return;
             }
 
-            // 鑰匙系統不需要檢查時間衝突，因為可以同時借用多支
-
-            // 新增借用記錄
-            const newBooking = {
+            // 建立新記錄
+            const newRecord = {
                 id: Date.now(),
-                roomId: parseInt(roomId),
-                roomName: rooms[roomId],
+                roomId: roomId,
+                roomName: roomNames[roomId],
                 department: department,
                 borrower: borrower,
                 extension: extension,
                 date: date,
                 startTime: startTime,
                 status: '借用中',
-                bookingTime: new Date().toLocaleString()
+                createTime: new Date().toLocaleString()
             };
 
-            bookings.push(newBooking);
+            console.log('新記錄:', newRecord);
 
-            // 儲存資料到 localStorage
-            saveToStorage();
+            // 新增到陣列
+            allBookings.push(newRecord);
+            console.log('總記錄數:', allBookings.length);
+
+            // 儲存到本地
+            saveBookings();
 
             // 清空表單
             document.getElementById('roomId').value = '';
@@ -783,180 +345,82 @@
             document.getElementById('date').value = '';
             document.getElementById('startTime').value = '';
 
-            alert(`會議室鑰匙借用成功！\n\n會議室：${rooms[roomId]}\n借用單位：${department}\n借用人：${borrower}\n\n請妥善保管鑰匙！`);
+            // 更新顯示
+            updateRecordsList();
+
+            // 成功提示
+            alert('借用成功！\n\n會議室：' + roomNames[roomId] + '\n借用人：' + borrower + '\n\n請妥善保管鑰匙！');
+            
+            console.log('借用完成');
         }
 
-        // 切換記錄類型標籤
-        function switchTab(view) {
-            currentView = view;
+        // 切換管理員面板
+        function toggleAdmin() {
+            const userForm = document.getElementById('user-form');
+            const adminPanel = document.getElementById('admin-panel');
             
-            // 更新標籤樣式
-            document.getElementById('current-tab').classList.toggle('active', view === 'current');
-            document.getElementById('all-tab').classList.toggle('active', view === 'all');
-            
-            // 重置選擇
-            selectedBookings = [];
-            
-            updateRecordsDisplay();
-        }
-
-        // 更新記錄顯示
-        function updateRecordsDisplay() {
-            const currentBookings = bookings.filter(b => b.status === '借用中');
-            
-            // 更新計數
-            document.getElementById('current-count').textContent = currentBookings.length;
-            document.getElementById('all-count').textContent = bookings.length;
-            
-            let filteredBookings = currentView === 'current' ? currentBookings : bookings;
-            
-            const container = document.getElementById('records-container');
-            const managementActions = document.getElementById('management-actions');
-            
-            // 顯示/隱藏管理操作
-            if (currentView === 'current' && filteredBookings.length > 0) {
-                managementActions.classList.remove('hidden');
+            if (adminPanel.classList.contains('show')) {
+                // 切換到使用者面板
+                adminPanel.classList.remove('show');
+                userForm.style.display = 'block';
             } else {
-                managementActions.classList.add('hidden');
+                // 切換到管理員面板
+                userForm.style.display = 'none';
+                adminPanel.classList.add('show');
+                updateRecordsList();
             }
+        }
+
+        // 更新記錄列表
+        function updateRecordsList() {
+            const container = document.getElementById('records-list');
             
-            // 更新選擇計數
-            document.getElementById('selected-count').textContent = selectedBookings.length;
-            
-            if (filteredBookings.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <p>${currentView === 'current' ? '目前沒有借用中的記錄' : '目前沒有任何記錄'}</p>
+            if (allBookings.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">目前沒有借用記錄</p>';
+                return;
+            }
+
+            let html = '';
+            allBookings.forEach((record, index) => {
+                html += `
+                    <div class="record-item">
+                        <div class="record-header">🏠 ${record.roomName}</div>
+                        <div class="record-details">
+                            <div>👤 ${record.borrower} (${record.department})</div>
+                            <div>📞 分機: ${record.extension}</div>
+                            <div>📅 ${record.date} ⏰ ${record.startTime}</div>
+                            <div>🕐 申請時間: ${record.createTime}</div>
+                        </div>
+                        <div>
+                            <span class="status status-active">✅ ${record.status}</span>
+                            <button onclick="returnKey(${index})" style="margin-left: 10px; padding: 4px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 歸還</button>
+                        </div>
                     </div>
                 `;
-                return;
-            }
-            
-            container.innerHTML = `
-                <div class="records-list">
-                    ${filteredBookings.map(booking => `
-                        <div class="record-item ${selectedBookings.includes(booking.id) ? 'selected' : ''}">
-                            <div class="record-grid">
-                                <div style="display: flex; align-items: center;">
-                                    ${currentView === 'current' && booking.status === '借用中' ? 
-                                        `<input type="checkbox" class="checkbox" ${selectedBookings.includes(booking.id) ? 'checked' : ''} onchange="toggleSelection(${booking.id})">` : ''}
-                                    <strong>🏠 ${booking.roomName}</strong>
-                                </div>
-                                <div class="record-info">
-                                    <div><strong>🏢 ${booking.department}</strong></div>
-                                    <div><strong>👤 ${booking.borrower}</strong></div>
-                                    <div style="color: #666; font-size: 12px;">📞 分機: ${booking.extension}</div>
-                                </div>
-                                <div class="record-info">
-                                    <div>📅 ${booking.date}</div>
-                                    <div>⏰ ${booking.startTime}</div>
-                                </div>
-                                <div>
-                                    <span class="status-badge ${booking.status === '借用中' ? 'status-active' : 'status-returned'}">
-                                        ${booking.status === '借用中' ? '✅' : '🔄'} ${booking.status}
-                                    </span>
-                                    ${booking.returnTime ? `<div style="font-size: 11px; color: #666; margin-top: 4px;">🔄 ${booking.returnTime}</div>` : ''}
-                                </div>
-                                <div style="color: #999; font-size: 12px;">
-                                    ID: ${booking.id}
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // 切換選擇狀態
-        function toggleSelection(bookingId) {
-            if (selectedBookings.includes(bookingId)) {
-                selectedBookings = selectedBookings.filter(id => id !== bookingId);
-            } else {
-                selectedBookings.push(bookingId);
-            }
-            updateRecordsDisplay();
-        }
-
-        // 歸還選中的記錄
-        function returnSelected() {
-            if (selectedBookings.length === 0) {
-                alert('請先選擇要歸還的記錄！');
-                return;
-            }
-            
-            const currentTime = new Date().toLocaleString();
-            bookings = bookings.map(booking => {
-                if (selectedBookings.includes(booking.id) && booking.status === '借用中') {
-                    return {
-                        ...booking,
-                        status: '已歸還',
-                        returnTime: currentTime
-                    };
-                }
-                return booking;
             });
-            
-            const count = selectedBookings.length;
-            selectedBookings = [];
-            saveData(); // 儲存變更
-            updateRecordsDisplay();
-            alert(`已歸還 ${count} 筆記錄！`);
+
+            container.innerHTML = html;
         }
 
-        // 顯示手動新增彈窗
-        function showManualAdd() {
-            document.getElementById('manual-add-modal').classList.remove('hidden');
-        }
-
-        // 隱藏手動新增彈窗
-        function hideManualAdd() {
-            document.getElementById('manual-add-modal').classList.add('hidden');
-            // 清空表單
-            document.getElementById('manual-roomId').value = '';
-            document.getElementById('manual-department').value = '';
-            document.getElementById('manual-borrower').value = '';
-            document.getElementById('manual-extension').value = '';
-            document.getElementById('manual-date').value = '';
-            document.getElementById('manual-startTime').value = '';
-        }
-
-        // 提交手動新增
-        function submitManualAdd() {
-            const roomId = document.getElementById('manual-roomId').value;
-            const department = document.getElementById('manual-department').value;
-            const borrower = document.getElementById('manual-borrower').value;
-            const extension = document.getElementById('manual-extension').value;
-            const date = document.getElementById('manual-date').value;
-            const startTime = document.getElementById('manual-startTime').value;
-
-            // 驗證必填欄位
-            if (!roomId || !department || !borrower || !extension || !date || !startTime) {
-                alert('請填寫所有必填欄位！');
-                return;
+        // 歸還鑰匙
+        function returnKey(index) {
+            if (confirm('確定要歸還這把鑰匙嗎？')) {
+                allBookings[index].status = '已歸還';
+                allBookings[index].returnTime = new Date().toLocaleString();
+                saveBookings();
+                updateRecordsList();
+                alert('鑰匙歸還成功！');
             }
+        }
 
-            // 鑰匙系統不需要檢查時間衝突
-
-            // 新增借用記錄
-            const newBooking = {
-                id: Date.now(),
-                roomId: parseInt(roomId),
-                roomName: rooms[roomId],
-                department: department,
-                borrower: borrower,
-                extension: extension,
-                date: date,
-                startTime: startTime,
-                status: '借用中',
-                bookingTime: new Date().toLocaleString()
-            };
-
-            bookings.push(newBooking);
-            saveToStorage(); // 儲存變更
-            hideManualAdd();
-            updateRecordsDisplay();
-            alert('手動記錄新增成功！');
+        // 清除所有記錄
+        function clearAllData() {
+            if (confirm('確定要清除所有記錄嗎？此操作無法復原！')) {
+                allBookings = [];
+                saveBookings();
+                updateRecordsList();
+                alert('所有記錄已清除！');
+            }
         }
     </script>
 </body>
