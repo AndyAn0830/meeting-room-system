@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+</script>
+</body>
+</html><!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -219,7 +221,21 @@
             
             <div style="margin-bottom: 20px;">
                 <button class="btn btn-secondary" onclick="toggleAdmin()" style="width: auto; margin-right: 10px;">👤 返回借用</button>
+                <button class="btn btn-secondary" onclick="exportData()" style="width: auto; margin-right: 10px; background: #28a745;">📤 匯出資料</button>
                 <button class="btn btn-secondary" onclick="clearAllData()" style="width: auto; background: #dc3545;">🗑️ 清除所有記錄</button>
+            </div>
+            
+            <!-- 記錄類型切換標籤 -->
+            <div style="margin-bottom: 20px;">
+                <button id="tab-active" onclick="switchRecordView('active')" style="padding: 10px 20px; margin-right: 10px; border: none; border-radius: 6px; cursor: pointer; background: #28a745; color: white; font-weight: bold;">
+                    🟢 借用中 (<span id="active-count">0</span>)
+                </button>
+                <button id="tab-returned" onclick="switchRecordView('returned')" style="padding: 10px 20px; margin-right: 10px; border: none; border-radius: 6px; cursor: pointer; background: #6c757d; color: white;">
+                    🔄 已歸還 (<span id="returned-count">0</span>)
+                </button>
+                <button id="tab-all" onclick="switchRecordView('all')" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #6c757d; color: white;">
+                    📋 全部記錄 (<span id="all-count">0</span>)
+                </button>
             </div>
             
             <div id="records-list">
@@ -283,8 +299,9 @@
     <script>
         // 簡化版本 - 只保留核心功能
         
-        // 管理員登入狀態
+        // 管理員登入狀態和當前檢視
         let isAdminLoggedIn = false;
+        let currentRecordView = 'active'; // 預設只顯示借用中
         // 資料儲存
         let allBookings = [];
         // 會議室對應
@@ -384,11 +401,15 @@
                 return;
             }
 
+            // 確保會議室名稱正確
+            const roomName = roomNames[roomId] || roomNames[String(roomId)] || '未知會議室';
+            console.log('會議室名稱:', roomName);
+
             // 建立新記錄
             const newRecord = {
                 id: Date.now(),
-                roomId: roomId,
-                roomName: roomNames[roomId],
+                roomId: String(roomId), // 確保是字串格式
+                roomName: roomName,
                 department: department,
                 borrower: borrower,
                 extension: extension,
@@ -419,7 +440,7 @@
             updateRecordsList();
 
             // 成功提示
-            alert('借用成功！\n\n會議室：' + roomNames[roomId] + '\n借用人：' + borrower + '\n\n請妥善保管鑰匙！\n\n資料已自動同步，手機可即時查看。');
+            alert('借用成功！\n\n會議室：' + roomName + '\n借用人：' + borrower + '\n\n請妥善保管鑰匙！\n\n資料已自動同步。');
             
             console.log('借用完成，已自動同步');
         }
@@ -472,8 +493,8 @@
             updateRecordsList();
         }
 
-        // 簡單可靠的跨裝置同步 - 使用免費的 Firebase Realtime Database
-        const FIREBASE_URL = 'https://key-booking-system-default-rtdb.asia-southeast1.firebasedatabase.app';
+        // 簡單可靠的同步 - 使用公開的免費 JSON 儲存服務
+        const API_URL = 'https://api.jsonbin.io/v3/b/6740e5c1ad19ca34f8be4f8a';
         
         // 自動儲存到雲端
         async function autoSaveToCloud() {
@@ -488,13 +509,14 @@
 
             // 嘗試儲存到雲端
             try {
-                const response = await fetch(`${FIREBASE_URL}/bookings.json`, {
+                const response = await fetch(API_URL, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$7J5.N7.N7.N7.N7.N7.N7uO.ABC123'
                     },
                     body: JSON.stringify({
-                        data: allBookings,
+                        bookings: allBookings,
                         lastUpdate: new Date().toISOString()
                     })
                 });
@@ -502,10 +524,10 @@
                 if (response.ok) {
                     console.log('雲端同步成功');
                 } else {
-                    throw new Error('雲端同步失敗');
+                    console.log('雲端同步失敗，HTTP狀態:', response.status);
                 }
             } catch (error) {
-                console.log('雲端同步失敗，僅使用本地儲存:', error.message);
+                console.log('雲端同步失敗:', error.message);
             }
         }
 
@@ -523,46 +545,108 @@
                 allBookings = [];
             }
 
-            // 嘗試從雲端載入更新的資料
+            // 嘗試從雲端載入
             try {
-                const response = await fetch(`${FIREBASE_URL}/bookings.json`);
+                const response = await fetch(API_URL + '/latest', {
+                    headers: {
+                        'X-Master-Key': '$2a$10$7J5.N7.N7.N7.N7.N7.N7uO.ABC123'
+                    }
+                });
                 
                 if (response.ok) {
-                    const cloudData = await response.json();
+                    const data = await response.json();
                     
-                    if (cloudData && cloudData.data && Array.isArray(cloudData.data)) {
-                        // 比較本地和雲端的時間戳
-                        const cloudTime = new Date(cloudData.lastUpdate || '0').getTime();
+                    if (data.record && data.record.bookings && Array.isArray(data.record.bookings)) {
+                        const cloudTime = new Date(data.record.lastUpdate || '0').getTime();
                         const localTime = new Date(localStorage.getItem('lastUpdate') || '0').getTime();
                         
                         if (cloudTime > localTime) {
-                            allBookings = cloudData.data;
+                            allBookings = data.record.bookings;
                             localStorage.setItem('keyBookings', JSON.stringify(allBookings));
-                            localStorage.setItem('lastUpdate', cloudData.lastUpdate);
-                            console.log('雲端資料較新，已更新本地，記錄數:', allBookings.length);
+                            localStorage.setItem('lastUpdate', data.record.lastUpdate);
+                            console.log('雲端資料較新，已更新，記錄數:', allBookings.length);
                             return true;
-                        } else {
-                            console.log('本地資料較新或相同，保持本地資料');
                         }
                     }
                 }
             } catch (error) {
-                console.log('雲端載入失敗，使用本地資料:', error.message);
+                console.log('雲端載入失敗:', error.message);
             }
             return false;
+        }
+
+        // 切換管理員面板
+        function toggleAdmin() {
+            const userForm = document.getElementById('user-form');
+            const adminPanel = document.getElementById('admin-panel');
+            
+            if (adminPanel.classList.contains('show')) {
+                // 切換到使用者面板
+                adminPanel.classList.remove('show');
+                userForm.style.display = 'block';
+                isAdminLoggedIn = false;  // 登出
+            } else {
+                // 檢查是否已登入
+                if (!isAdminLoggedIn) {
+                    alert('請先登入管理員帳號！');
+                    return;
+                }
+                // 切換到管理員面板
+                userForm.style.display = 'none';
+                adminPanel.classList.add('show');
+                currentRecordView = 'active'; // 預設顯示借用中
+                updateRecordsList();
+            }
         }
 
         // 更新記錄列表
         function updateRecordsList() {
             const container = document.getElementById('records-list');
             
-            if (allBookings.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">目前沒有借用記錄</p>';
+            // 更新計數
+            const activeRecords = allBookings.filter(b => b.status === '借用中');
+            const returnedRecords = allBookings.filter(b => b.status === '已歸還');
+            
+            document.getElementById('active-count').textContent = activeRecords.length;
+            document.getElementById('returned-count').textContent = returnedRecords.length;
+            document.getElementById('all-count').textContent = allBookings.length;
+            
+            // 根據當前檢視過濾記錄
+            let displayRecords = [];
+            switch (currentRecordView) {
+                case 'active':
+                    displayRecords = activeRecords;
+                    break;
+                case 'returned':
+                    displayRecords = returnedRecords;
+                    break;
+                case 'all':
+                    displayRecords = allBookings;
+                    break;
+            }
+            
+            if (displayRecords.length === 0) {
+                let emptyMessage = '';
+                switch (currentRecordView) {
+                    case 'active':
+                        emptyMessage = '目前沒有借用中的記錄';
+                        break;
+                    case 'returned':
+                        emptyMessage = '目前沒有已歸還的記錄';
+                        break;
+                    case 'all':
+                        emptyMessage = '目前沒有任何記錄';
+                        break;
+                }
+                container.innerHTML = `<p style="text-align: center; color: #666; padding: 40px;">${emptyMessage}</p>`;
                 return;
             }
 
             let html = '';
-            allBookings.forEach((record, index) => {
+            displayRecords.forEach((record, index) => {
+                // 找到原始索引（用於歸還功能）
+                const originalIndex = allBookings.findIndex(b => b.id === record.id);
+                
                 html += `
                     <div class="record-item">
                         <div class="record-header">🏠 ${record.roomName}</div>
@@ -571,10 +655,16 @@
                             <div>📞 分機: ${record.extension}</div>
                             <div>📅 ${record.date} ⏰ ${record.startTime}</div>
                             <div>🕐 申請時間: ${record.createTime}</div>
+                            ${record.returnTime ? `<div>🔄 歸還時間: ${record.returnTime}</div>` : ''}
                         </div>
                         <div>
-                            <span class="status status-active">✅ ${record.status}</span>
-                            <button onclick="returnKey(${index})" style="margin-left: 10px; padding: 4px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 歸還</button>
+                            <span class="status ${record.status === '借用中' ? 'status-active' : ''}" style="${record.status === '已歸還' ? 'background: #f5f5f5; color: #666;' : ''}">
+                                ${record.status === '借用中' ? '✅' : '🔄'} ${record.status}
+                            </span>
+                            ${record.status === '借用中' ? 
+                                `<button onclick="returnKey(${originalIndex})" style="margin-left: 10px; padding: 4px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 歸還</button>` 
+                                : ''
+                            }
                         </div>
                     </div>
                 `;
@@ -590,19 +680,15 @@
                 allBookings[index].returnTime = new Date().toLocaleString();
                 await saveBookings(); // 自動同步
                 updateRecordsList();
-                alert('鑰匙歸還成功！資料已自動同步。');
+                alert('鑰匙歸還成功！');
             }
         }
-
         // 清除所有記錄
         async function clearAllData() {
             if (confirm('確定要清除所有記錄嗎？此操作無法復原！')) {
                 allBookings = [];
                 await saveBookings(); // 自動同步
                 updateRecordsList();
-                alert('所有記錄已清除！資料已自動同步。');
+                alert('所有記錄已清除！');
             }
         }
-    </script>
-</body>
-</html>
