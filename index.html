@@ -849,4 +849,47 @@
             const department = document.getElementById('manual-department').value;
             const borrower = document.getElementById('manual-borrower').value;
             const extension = document.getElementById('manual-extension').value;
-            const date = document.getElementById('manual-date').
+            const date = document.getElementById('manual-date').value;
+            const startTime = document.getElementById('manual-startTime').value;
+
+            // 驗證必填欄位
+            if (!roomId || !department || !borrower || !extension || !date || !startTime) {
+                alert('請填寫所有必填欄位！');
+                return;
+            }
+
+            // 檢查時間衝突
+            const hasConflict = bookings.some(booking => 
+                booking.roomId === parseInt(roomId) &&
+                booking.date === date &&
+                booking.startTime === startTime &&
+                booking.status === '借用中'
+            );
+
+            if (hasConflict) {
+                alert('該會議室在此時間已被預約！請選擇其他時間。');
+                return;
+            }
+
+            // 新增借用記錄
+            const newBooking = {
+                id: Date.now(),
+                roomId: parseInt(roomId),
+                roomName: rooms[roomId],
+                department: department,
+                borrower: borrower,
+                extension: extension,
+                date: date,
+                startTime: startTime,
+                status: '借用中',
+                bookingTime: new Date().toLocaleString()
+            };
+
+            bookings.push(newBooking);
+            hideManualAdd();
+            updateRecordsDisplay();
+            alert('手動記錄新增成功！');
+        }
+    </script>
+</body>
+</html>
