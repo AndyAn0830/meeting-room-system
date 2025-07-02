@@ -163,7 +163,7 @@
                 <div style="font-size: 32px;">🏢</div>
                 <h1>鑰匙借用系統</h1>
                 <p style="color: #666; font-size: 14px;">請填寫借用資訊</p>
-                <button class="admin-btn" onclick="toggleAdmin()">🔧 管理員</button>
+                <button class="admin-btn" onclick="showLogin()">🔧 管理員</button>
             </div>
         </div>
 
@@ -227,26 +227,58 @@
             </div>
         </div>
 
-        <!-- 提醒 -->
-        <div class="card" style="background: #fff8e1; border: 1px solid #ffecb3;">
-            <h3 style="color: #f57f17; margin-bottom: 12px;">💡 使用提醒</h3>
-            <ul style="color: #f57f17; font-size: 14px; margin-left: 20px;">
-                <li>借用會議室鑰匙時請確認編號</li>
-                <li>請妥善保管借用的鑰匙</li>
-                <li>使用完畢請盡速歸還</li>
-            </ul>
+        <!-- 管理員登入彈窗 -->
+        <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px;">
+            <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; margin: 50px auto; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+                <h3 style="text-align: center; margin-bottom: 24px; font-size: 18px; color: #333;">🔐 管理員登入</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">👤 帳號</label>
+                    <input type="text" id="username" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入管理員帳號">
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">🔒 密碼</label>
+                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼">
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="closeLogin()" style="flex: 1; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">取消</button>
+                    <button onclick="doLogin()" style="flex: 1; background: #1976d2; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">登入</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 資料同步彈窗 -->
+        <div id="sync-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px;">
+            <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; margin: 50px auto; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+                <h3 style="text-align: center; margin-bottom: 24px; font-size: 18px; color: #333;">📱 跨裝置同步</h3>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="qr-code" style="margin: 20px 0;"></div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 16px;">請用手機掃描上方 QR Code 查看最新記錄</p>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="margin-bottom: 8px; color: #333;">📋 手動複製連結：</h4>
+                    <input type="text" id="share-link" readonly style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white;">
+                    <button onclick="copyLink()" style="margin-top: 8px; background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">📋 複製連結</button>
+                </div>
+                
+                <button onclick="closeSyncModal()" style="width: 100%; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">關閉</button>
+            </div>
         </div>
     </div>
 
     <script>
         // 簡化版本 - 只保留核心功能
         
+        // 管理員登入狀態
+        let isAdminLoggedIn = false;
         // 資料儲存
         let allBookings = [];
-        
         // 會議室對應
         const roomNames = {
-            '1': '第一會議室',
             '2': '二期講堂', 
             '3': '合心會議室',
             '4': '和氣會議室',
@@ -263,12 +295,40 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').min = today;
             
+            // 檢查是否有同步資料
+            checkForSyncData();
+            
             // 載入已儲存的資料
             loadBookings();
             updateRecordsList();
             
             console.log('初始化完成，目前記錄數:', allBookings.length);
         };
+
+        // 檢查 URL 中的同步資料
+        function checkForSyncData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const syncData = urlParams.get('data');
+            
+            if (syncData) {
+                try {
+                    const decodedData = JSON.parse(atob(syncData));
+                    if (Array.isArray(decodedData)) {
+                        allBookings = decodedData;
+                        saveBookings();
+                        
+                        // 清除 URL 參數
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        alert(`已同步資料！\n共載入 ${allBookings.length} 筆記錄。`);
+                        return true;
+                    }
+                } catch (error) {
+                    console.log('同步資料格式錯誤:', error);
+                }
+            }
+            return false;
+        }
 
         // 載入記錄
         function loadBookings() {
@@ -354,21 +414,66 @@
             console.log('借用完成');
         }
 
-        // 切換管理員面板
-        function toggleAdmin() {
-            const userForm = document.getElementById('user-form');
-            const adminPanel = document.getElementById('admin-panel');
-            
-            if (adminPanel.classList.contains('show')) {
-                // 切換到使用者面板
-                adminPanel.classList.remove('show');
-                userForm.style.display = 'block';
+        // 顯示登入彈窗
+        function showLogin() {
+            document.getElementById('login-modal').style.display = 'block';
+        }
+
+        // 關閉登入彈窗
+        function closeLogin() {
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // 執行登入
+        function doLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'hl1234' && password === 'admin1234') {
+                isAdminLoggedIn = true;  // 設定登入狀態
+                closeLogin();
+                toggleAdmin();
+                alert('登入成功！');
             } else {
-                // 切換到管理員面板
-                userForm.style.display = 'none';
-                adminPanel.classList.add('show');
-                updateRecordsList();
+                alert('帳號或密碼錯誤！');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
             }
+        }
+
+        // 顯示同步彈窗
+        function showSyncModal() {
+            const modal = document.getElementById('sync-modal');
+            const qrContainer = document.getElementById('qr-code');
+            const linkInput = document.getElementById('share-link');
+            
+            // 生成包含資料的 URL
+            const data = btoa(JSON.stringify(allBookings));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${data}`;
+            
+            // 生成 QR Code
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+            qrContainer.innerHTML = `<img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">`;
+            
+            // 設定分享連結
+            linkInput.value = shareUrl;
+            
+            modal.style.display = 'block';
+        }
+
+        // 關閉同步彈窗
+        function closeSyncModal() {
+            document.getElementById('sync-modal').style.display = 'none';
+        }
+
+        // 複製連結
+        function copyLink() {
+            const linkInput = document.getElementById('share-link');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('連結已複製！請傳送到手機開啟。');
         }
 
         // 更新記錄列表
