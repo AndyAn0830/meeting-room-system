@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會議室借用系統</title>
+    <title>鑰匙借用系統</title>
     <style>
         * {
             margin: 0;
@@ -406,7 +406,7 @@
                 <!-- 標題 -->
                 <div class="header">
                     <div style="font-size: 32px;">🏢</div>
-                    <h1>會議室借用系統</h1>
+                    <h1>鑰匙借用系統</h1>
                     <p>請填寫借用資訊</p>
                     <button class="admin-btn" onclick="showLogin()">🔧 管理員</button>
                 </div>
@@ -420,16 +420,16 @@
                     
                     <div class="form-body">
                         <div class="form-group">
-                            <label>🏠 選擇會議室 <span class="required">*</span></label>
+                            <label>🔑 選擇鑰匙 <span class="required">*</span></label>
                             <select id="roomId" class="form-control">
-                                <option value="">請選擇會議室</option>
-                                <option value="1">第一會議室</option>
-                                <option value="2">二期講堂</option>
-                                <option value="3">合心會議室</option>
-                                <option value="4">和氣會議室</option>
-                                <option value="5">互愛會議室</option>
-                                <option value="6">貴賓室</option>
-                                <option value="7">協力講堂</option>
+                                <option value="">請選擇鑰匙</option>
+                                <option value="1">第一會議室鑰匙</option>
+                                <option value="2">二期講堂鑰匙</option>
+                                <option value="3">合心會議室鑰匙</option>
+                                <option value="4">和氣會議室鑰匙</option>
+                                <option value="5">互愛會議室鑰匙</option>
+                                <option value="6">貴賓室鑰匙</option>
+                                <option value="7">協力講堂鑰匙</option>
                             </select>
                         </div>
 
@@ -589,13 +589,13 @@
         let currentView = 'current';
 
         const rooms = {
-            1: '第一會議室',
-            2: '二期講堂',
-            3: '合心會議室',
-            4: '和氣會議室',
-            5: '互愛會議室',
-            6: '貴賓室',
-            7: '協力講堂'
+            1: '第一會議室鑰匙',
+            2: '二期講堂鑰匙',
+            3: '合心會議室鑰匙',
+            4: '和氣會議室鑰匙',
+            5: '互愛會議室鑰匙',
+            6: '貴賓室鑰匙',
+            7: '協力講堂鑰匙'
         };
 
         // 初始化
