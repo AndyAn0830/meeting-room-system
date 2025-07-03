@@ -361,32 +361,29 @@
                     return;
                 }
 
-                // 修正會議室名稱取得邏輯
-                let roomName = '未知會議室';
-                
-                // 多重檢查確保能取得正確的會議室名稱
-                if (roomNames[roomId]) {
-                    roomName = roomNames[roomId];
-                } else if (roomNames[String(roomId)]) {
-                    roomName = roomNames[String(roomId)];
-                } else if (roomNames[parseInt(roomId)]) {
-                    roomName = roomNames[parseInt(roomId)];
-                } else {
-                    // 手動對應
-                    switch(String(roomId)) {
-                        case '1': roomName = '第一會議室'; break;
-                        case '2': roomName = '二期講堂'; break;
-                        case '3': roomName = '合心會議室'; break;
-                        case '4': roomName = '和氣會議室'; break;
-                        case '5': roomName = '互愛會議室'; break;
-                        case '6': roomName = '貴賓室'; break;
-                        case '7': roomName = '協力講堂'; break;
-                        default: roomName = '會議室ID:' + roomId;
+                // 取得會議室名稱 - 使用最可靠的方式
+                function getRoomName(id) {
+                    console.log('取得會議室名稱，ID:', id, '類型:', typeof id);
+                    
+                    // 轉換為字串進行比對
+                    const roomIdStr = String(id);
+                    
+                    switch(roomIdStr) {
+                        case '1': return '第一會議室';
+                        case '2': return '二期講堂';
+                        case '3': return '合心會議室';
+                        case '4': return '和氣會議室';
+                        case '5': return '互愛會議室';
+                        case '6': return '貴賓室';
+                        case '7': return '協力講堂';
+                        default: 
+                            console.warn('未知的會議室ID:', id);
+                            return '會議室ID:' + id;
                     }
                 }
                 
-                console.log('roomId:', roomId, 'type:', typeof roomId);
-                console.log('會議室名稱:', roomName);
+                const roomName = getRoomName(roomId);
+                console.log('最終會議室名稱:', roomName);
 
                 // 建立新記錄
                 const newRecord = {
@@ -422,7 +419,7 @@
                 // 更新顯示
                 updateRecordsList();
 
-                // 成功提示
+                // 成功提示 - 使用確定正確的會議室名稱
                 alert('✅ 借用成功！\n\n🏠 會議室：' + roomName + '\n👤 借用人：' + borrower + '\n\n🔑 請妥善保管鑰匙！');
                 
                 console.log('借用完成');
