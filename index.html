@@ -240,7 +240,7 @@
                 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">🔒 密碼</label>
-                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼">
+                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼" onkeypress="handleLoginKeyPress(event)">
                 </div>
                 
                 <div style="display: flex; gap: 12px;">
@@ -435,12 +435,43 @@
             if (username === 'hp' && password === 'hp') {
                 isAdminLoggedIn = true;  // 設定登入狀態
                 closeLogin();
-                toggleAdmin();
+                showAdminPanel(); // 直接顯示管理員面板
                 alert('登入成功！');
             } else {
                 alert('帳號或密碼錯誤！');
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
+            }
+        }
+
+        // 顯示管理員面板
+        function showAdminPanel() {
+            const userForm = document.getElementById('user-form');
+            const adminPanel = document.getElementById('admin-panel');
+            
+            userForm.style.display = 'none';
+            adminPanel.classList.add('show');
+            updateRecordsList();
+        }
+
+        // 切換管理員面板
+        function toggleAdmin() {
+            const userForm = document.getElementById('user-form');
+            const adminPanel = document.getElementById('admin-panel');
+            
+            if (adminPanel.classList.contains('show')) {
+                // 切換到使用者面板
+                adminPanel.classList.remove('show');
+                userForm.style.display = 'block';
+                isAdminLoggedIn = false;  // 登出
+            } else {
+                // 檢查是否已登入
+                if (!isAdminLoggedIn) {
+                    showLogin(); // 顯示登入框
+                    return;
+                }
+                // 切換到管理員面板
+                showAdminPanel();
             }
         }
 
