@@ -219,7 +219,7 @@
             
             <div style="margin-bottom: 20px;">
                 <button class="btn btn-secondary" onclick="toggleAdmin()" style="width: auto; margin-right: 10px;">👤 返回借用</button>
-                <button class="btn btn-secondary" onclick="showSyncModal()" style="width: auto; margin-right: 10px; background: #4caf50;">📱 同步到手機</button>
+                <button class="btn btn-secondary" onclick="exportData()" style="width: auto; margin-right: 10px; background: #ff9800;">📤 匯出資料</button>
                 <button class="btn btn-secondary" onclick="clearAllData()" style="width: auto; background: #dc3545;">🗑️ 清除所有記錄</button>
             </div>
             
@@ -475,37 +475,63 @@
             }
         }
 
-        // 顯示同步彈窗
-        function showSyncModal() {
-            const modal = document.getElementById('sync-modal');
-            const qrContainer = document.getElementById('qr-code');
-            const linkInput = document.getElementById('share-link');
+        // 匯出資料功能
+        function exportData() {
+            if (allBookings.length === 0) {
+                alert('目前沒有資料可以匯出！');
+                return;
+            }
+
+            // 準備匯出資料
+            const exportData = {
+                exportTime: new Date().toLocaleString(),
+                totalRecords: allBookings.length,
+                data: allBookings
+            };
+
+            // 轉換為 JSON 字串
+            const dataStr = JSON.stringify(exportData, null, 2);
             
-            // 生成包含資料的 URL
-            const data = btoa(JSON.stringify(allBookings));
-            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${data}`;
+            // 建立下載連結
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileName = `鑰匙借用記錄_${new Date().toISOString().split('T')[0]}.json`;
             
-            // 生成 QR Code
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
-            qrContainer.innerHTML = `<img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">`;
+            // 建立隱藏的下載連結
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileName);
+            linkElement.style.display = 'none';
             
-            // 設定分享連結
-            linkInput.value = shareUrl;
+            // 觸發下載
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
             
-            modal.style.display = 'block';
+            alert(`資料匯出成功！\n檔案名稱：${exportFileName}\n共匯出 ${allBookings.length} 筆記錄`);
         }
 
-        // 關閉同步彈窗
-        function closeSyncModal() {
-            document.getElementById('sync-modal').style.display = 'none';
-        }
-
-        // 複製連結
-        function copyLink() {
-            const linkInput = document.getElementById('share-link');
-            linkInput.select();
-            document.execCommand('copy');
-            alert('連結已複製！請傳送到手機開啟。');
+        // 匯入資料功能 (預留，如果需要的話)
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.data && Array.isArray(importedData.data)) {
+                            allBookings = importedData.data;
+                            saveBookings();
+                            updateRecordsList();
+                            alert(`資料匯入成功！\n共匯入 ${allBookings.length} 筆記錄`);
+                        } else {
+                            alert('檔案格式錯誤！請選擇正確的匯出檔案。');
+                        }
+                    } catch (error) {
+                        alert('匯入失敗，檔案格式錯誤！');
+                    }
+                };
+                reader.readAsText(file);
+            }
         }
 
         // 更新記錄列表
