@@ -219,7 +219,7 @@
             
             <div style="margin-bottom: 20px;">
                 <button class="btn btn-secondary" onclick="toggleAdmin()" style="width: auto; margin-right: 10px;">👤 返回借用</button>
-                <button class="btn btn-secondary" onclick="exportData()" style="width: auto; margin-right: 10px; background: #ff9800;">📤 匯出資料</button>
+                <button class="btn btn-secondary" onclick="showSyncModal()" style="width: auto; margin-right: 10px; background: #4caf50;">📱 同步到手機</button>
                 <button class="btn btn-secondary" onclick="clearAllData()" style="width: auto; background: #dc3545;">🗑️ 清除所有記錄</button>
             </div>
             
@@ -240,7 +240,7 @@
                 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 14px;">🔒 密碼</label>
-                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼" onkeypress="handleLoginKeyPress(event)">
+                    <input type="password" id="password" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" placeholder="請輸入密碼">
                 </div>
                 
                 <div style="display: flex; gap: 12px;">
@@ -250,14 +250,24 @@
             </div>
         </div>
 
-        <!-- 提醒 -->
-        <div class="card" style="background: #fff8e1; border: 1px solid #ffecb3;">
-            <h3 style="color: #f57f17; margin-bottom: 12px;">💡 使用提醒</h3>
-            <ul style="color: #f57f17; font-size: 14px; margin-left: 20px;">
-                <li>借用會議室鑰匙時請確認編號</li>
-                <li>請妥善保管借用的鑰匙</li>
-                <li>使用完畢請盡速歸還</li>
-            </ul>
+        <!-- 資料同步彈窗 -->
+        <div id="sync-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px;">
+            <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; margin: 50px auto; box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
+                <h3 style="text-align: center; margin-bottom: 24px; font-size: 18px; color: #333;">📱 跨裝置同步</h3>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="qr-code" style="margin: 20px 0;"></div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 16px;">請用手機掃描上方 QR Code 查看最新記錄</p>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="margin-bottom: 8px; color: #333;">📋 手動複製連結：</h4>
+                    <input type="text" id="share-link" readonly style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white;">
+                    <button onclick="copyLink()" style="margin-top: 8px; background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">📋 複製連結</button>
+                </div>
+                
+                <button onclick="closeSyncModal()" style="width: 100%; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;">關閉</button>
+            </div>
         </div>
     </div>
 
@@ -422,10 +432,10 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (username === 'hp' && password === 'hp') {
+            if (username === 'hl1234' && password === 'admin1234') {
                 isAdminLoggedIn = true;  // 設定登入狀態
                 closeLogin();
-                showAdminPanel(); // 直接顯示管理員面板
+                toggleAdmin();
                 alert('登入成功！');
             } else {
                 alert('帳號或密碼錯誤！');
@@ -434,94 +444,37 @@
             }
         }
 
-        // 顯示管理員面板
-        function showAdminPanel() {
-            const userForm = document.getElementById('user-form');
-            const adminPanel = document.getElementById('admin-panel');
+        // 顯示同步彈窗
+        function showSyncModal() {
+            const modal = document.getElementById('sync-modal');
+            const qrContainer = document.getElementById('qr-code');
+            const linkInput = document.getElementById('share-link');
             
-            userForm.style.display = 'none';
-            adminPanel.classList.add('show');
-            updateRecordsList();
+            // 生成包含資料的 URL
+            const data = btoa(JSON.stringify(allBookings));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${data}`;
+            
+            // 生成 QR Code
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+            qrContainer.innerHTML = `<img src="${qrUrl}" style="width: 200px; height: 200px; border: 1px solid #ddd;">`;
+            
+            // 設定分享連結
+            linkInput.value = shareUrl;
+            
+            modal.style.display = 'block';
         }
 
-        // 切換管理員面板
-        function toggleAdmin() {
-            const userForm = document.getElementById('user-form');
-            const adminPanel = document.getElementById('admin-panel');
-            
-            if (adminPanel.classList.contains('show')) {
-                // 切換到使用者面板
-                adminPanel.classList.remove('show');
-                userForm.style.display = 'block';
-                isAdminLoggedIn = false;  // 登出
-            } else {
-                // 檢查是否已登入
-                if (!isAdminLoggedIn) {
-                    showLogin(); // 顯示登入框
-                    return;
-                }
-                // 切換到管理員面板
-                showAdminPanel();
-            }
+        // 關閉同步彈窗
+        function closeSyncModal() {
+            document.getElementById('sync-modal').style.display = 'none';
         }
 
-        // 匯出資料功能
-        function exportData() {
-            if (allBookings.length === 0) {
-                alert('目前沒有資料可以匯出！');
-                return;
-            }
-
-            // 準備匯出資料
-            const exportData = {
-                exportTime: new Date().toLocaleString(),
-                totalRecords: allBookings.length,
-                data: allBookings
-            };
-
-            // 轉換為 JSON 字串
-            const dataStr = JSON.stringify(exportData, null, 2);
-            
-            // 建立下載連結
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileName = `鑰匙借用記錄_${new Date().toISOString().split('T')[0]}.json`;
-            
-            // 建立隱藏的下載連結
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileName);
-            linkElement.style.display = 'none';
-            
-            // 觸發下載
-            document.body.appendChild(linkElement);
-            linkElement.click();
-            document.body.removeChild(linkElement);
-            
-            alert(`資料匯出成功！\n檔案名稱：${exportFileName}\n共匯出 ${allBookings.length} 筆記錄`);
-        }
-
-        // 匯入資料功能 (預留，如果需要的話)
-        function importData(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.data && Array.isArray(importedData.data)) {
-                            allBookings = importedData.data;
-                            saveBookings();
-                            updateRecordsList();
-                            alert(`資料匯入成功！\n共匯入 ${allBookings.length} 筆記錄`);
-                        } else {
-                            alert('檔案格式錯誤！請選擇正確的匯出檔案。');
-                        }
-                    } catch (error) {
-                        alert('匯入失敗，檔案格式錯誤！');
-                    }
-                };
-                reader.readAsText(file);
-            }
+        // 複製連結
+        function copyLink() {
+            const linkInput = document.getElementById('share-link');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('連結已複製！請傳送到手機開啟。');
         }
 
         // 更新記錄列表
