@@ -210,6 +210,11 @@
                 <input type="time" id="startTime" class="form-control">
             </div>
 
+            <div class="form-group">
+                <label>📝 備註</label>
+                <textarea id="notes" class="form-control" placeholder="請輸入備註（會議目的、特殊需求等）" rows="3" style="resize: vertical; min-height: 80px;"></textarea>
+            </div>
+
             <button class="btn" onclick="submitBooking()">✅ 確認借用</button>
         </div>
 
@@ -270,14 +275,13 @@
     </div>
 
     <script>
-        // 簡化版本 - 只保留核心功能
-        
         // 管理員登入狀態
         let isAdminLoggedIn = false;
         // 資料儲存
         let allBookings = [];
-        // 會議室對應
+        // 會議室對應 - ✅ 修正：加入第一會議室
         const roomNames = {
+            '1': '第一會議室',  // ✅ 新增第一會議室
             '2': '二期講堂', 
             '3': '合心會議室',
             '4': '和氣會議室',
@@ -289,13 +293,11 @@
         // 初始化
         window.onload = function() {
             console.log('頁面載入完成');
+            console.log('會議室對應表:', roomNames);
             
             // 設定今天為最小日期
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').min = today;
-            
-            // 檢查是否有同步資料
-            checkForSyncData();
             
             // 載入已儲存的資料
             loadBookings();
@@ -304,69 +306,28 @@
             console.log('初始化完成，目前記錄數:', allBookings.length);
         };
 
-        // 檢查 URL 中的同步資料
-        function checkForSyncData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const syncData = urlParams.get('data');
-            
-            if (syncData) {
-                try {
-                    const decodedData = JSON.parse(atob(syncData));
-                    if (Array.isArray(decodedData)) {
-                        allBookings = decodedData;
-                        saveBookings();
-                        
-                        // 清除 URL 參數
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        
-                        alert(`已同步資料！\n共載入 ${allBookings.length} 筆記錄。`);
-                        return true;
-                    }
-                } catch (error) {
-                    console.log('同步資料格式錯誤:', error);
-                }
-            }
-            return false;
-        }
-
-        // 載入記錄 - 徹底清理無效資料
+        // 載入記錄
         function loadBookings() {
             try {
                 const saved = localStorage.getItem('keyBookings');
                 if (saved) {
                     const loadedData = JSON.parse(saved);
-                    console.log('原始載入資料:', loadedData);
+                    console.log('載入資料:', loadedData);
                     
-                    // 嚴格驗證並清理資料
+                    // 驗證並清理資料
                     allBookings = loadedData.filter(booking => {
-                        // 檢查必要欄位
                         const isValid = booking && 
-                                       typeof booking.id !== 'undefined' && 
+                                       booking.id && 
                                        booking.roomName && 
-                                       booking.roomName !== 'undefined' &&
                                        booking.borrower && 
-                                       booking.borrower !== 'undefined' &&
-                                       booking.status &&
-                                       booking.status !== 'undefined';
-                        
-                        if (!isValid) {
-                            console.log('發現無效記錄，已過濾:', booking);
-                        }
-                        
+                                       booking.status;
                         return isValid;
                     });
                     
-                    console.log('清理後的有效記錄:', allBookings.length, '筆');
-                    console.log('有效記錄內容:', allBookings);
-                    
-                    // 如果有清理動作，重新儲存乾淨的資料
-                    if (allBookings.length !== loadedData.length) {
-                        console.log('發現並清理了', loadedData.length - allBookings.length, '筆無效記錄');
-                        saveBookings();
-                    }
+                    console.log('有效記錄:', allBookings.length, '筆');
                 } else {
                     allBookings = [];
-                    console.log('沒有儲存的記錄，初始化空陣列');
+                    console.log('沒有儲存記錄，初始化空陣列');
                 }
             } catch (error) {
                 console.log('載入記錄失敗:', error);
@@ -384,7 +345,7 @@
             }
         }
 
-        // 提交借用
+        // ✅ 提交借用 - 完整函數
         function submitBooking() {
             console.log('開始提交借用...');
             
@@ -395,12 +356,21 @@
             const extension = document.getElementById('extension').value;
             const date = document.getElementById('date').value;
             const startTime = document.getElementById('startTime').value;
+            const notes = document.getElementById('notes').value;
             
-            console.log('表單資料:', {roomId, department, borrower, extension, date, startTime});
+            console.log('表單資料:', {roomId, department, borrower, extension, date, startTime, notes});
+            console.log('選擇的會議室ID:', roomId, '對應名稱:', roomNames[roomId]);
 
             // 檢查必填欄位
             if (!roomId || !department || !borrower || !extension || !date || !startTime) {
                 alert('請填寫所有必填欄位！');
+                return;
+            }
+
+            // 檢查會議室是否存在於對應表中
+            if (!roomNames[roomId]) {
+                console.error('會議室ID不存在於對應表中:', roomId);
+                alert('選擇的會議室有誤，請重新選擇！');
                 return;
             }
 
@@ -414,6 +384,7 @@
                 extension: extension,
                 date: date,
                 startTime: startTime,
+                notes: notes, // 新增備註欄位
                 status: '借用中',
                 createTime: new Date().toLocaleString()
             };
@@ -434,6 +405,7 @@
             document.getElementById('extension').value = '';
             document.getElementById('date').value = '';
             document.getElementById('startTime').value = '';
+            document.getElementById('notes').value = ''; // 清空備註
 
             // 更新顯示
             updateRecordsDisplay();
@@ -444,27 +416,31 @@
             console.log('借用完成');
         }
 
-        // 顯示登入彈窗
+        // ✅ 顯示登入彈窗
         function showLogin() {
+            console.log('顯示登入彈窗');
             document.getElementById('login-modal').style.display = 'block';
         }
 
-        // 關閉登入彈窗
+        // ✅ 關閉登入彈窗
         function closeLogin() {
+            console.log('關閉登入彈窗');
             document.getElementById('login-modal').style.display = 'none';
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
 
-        // 執行登入
+        // ✅ 執行登入
         function doLogin() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+            console.log('嘗試登入:', username);
+
             if (username === 'hp' && password === 'hp') {
-                isAdminLoggedIn = true;  // 設定登入狀態
+                isAdminLoggedIn = true;
                 closeLogin();
-                showAdminPanel(); // 直接顯示管理員面板
+                showAdminPanel();
                 alert('登入成功！');
             } else {
                 alert('帳號或密碼錯誤！');
@@ -492,88 +468,25 @@
                 // 切換到使用者面板
                 adminPanel.classList.remove('show');
                 userForm.style.display = 'block';
-                isAdminLoggedIn = false;  // 登出
+                isAdminLoggedIn = false;
             } else {
                 // 檢查是否已登入
                 if (!isAdminLoggedIn) {
-                    showLogin(); // 顯示登入框
+                    showLogin();
                     return;
                 }
-                // 切換到管理員面板
                 showAdminPanel();
             }
         }
 
-        // 匯出資料功能 - 包含所有記錄（含已歸還）
-        function exportData() {
-            if (allBookings.length === 0) {
-                alert('目前沒有資料可以匯出！');
-                return;
-            }
-
-            // 統計資料
-            const activeCount = allBookings.filter(booking => booking.status === '借用中').length;
-            const returnedCount = allBookings.filter(booking => booking.status === '已歸還').length;
-
-            // 準備匯出資料
-            const exportData = {
-                exportTime: new Date().toLocaleString(),
-                summary: {
-                    totalRecords: allBookings.length,
-                    activeRecords: activeCount,
-                    returnedRecords: returnedCount
-                },
-                data: allBookings
-            };
-
-            // 轉換為 JSON 字串
-            const dataStr = JSON.stringify(exportData, null, 2);
-            
-            // 建立下載連結
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileName = `鑰匙借用記錄_${new Date().toISOString().split('T')[0]}.json`;
-            
-            // 建立隱藏的下載連結
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileName);
-            linkElement.style.display = 'none';
-            
-            // 觸發下載
-            document.body.appendChild(linkElement);
-            linkElement.click();
-            document.body.removeChild(linkElement);
-            
-            alert(`資料匯出成功！\n檔案：${exportFileName}\n\n📊 統計資料：\n• 總記錄數：${allBookings.length} 筆\n• 借用中：${activeCount} 筆\n• 已歸還：${returnedCount} 筆`);
+        // 更新記錄顯示（統一函數）
+        function updateRecordsDisplay() {
+            updateRecordsList();
         }
 
-        // 匯入資料功能 (預留，如果需要的話)
-        function importData(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.data && Array.isArray(importedData.data)) {
-                            allBookings = importedData.data;
-                            saveBookings();
-                            updateRecordsList();
-                            alert(`資料匯入成功！\n共匯入 ${allBookings.length} 筆記錄`);
-                        } else {
-                            alert('檔案格式錯誤！請選擇正確的匯出檔案。');
-                        }
-                    } catch (error) {
-                        alert('匯入失敗，檔案格式錯誤！');
-                    }
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        // 更新記錄列表 - 使用雙擊來觸發歸還
+        // 更新記錄列表
         function updateRecordsList() {
-            console.log('=== 開始更新記錄列表 ===');
+            console.log('更新記錄列表');
             console.log('所有記錄:', allBookings);
             
             const container = document.getElementById('records-list');
@@ -582,30 +495,21 @@
                 return;
             }
             
-            // 只顯示借用中的記錄，並確保記錄有效
-            const activeBookings = allBookings.filter(booking => {
-                const isValid = booking && 
-                               booking.id && 
-                               booking.roomName && 
-                               booking.borrower && 
-                               booking.status === '借用中';
-                console.log('記錄驗證:', booking, '有效:', isValid);
-                return isValid;
-            });
+            // 只顯示借用中的記錄
+            const activeBookings = allBookings.filter(booking => 
+                booking && booking.status === '借用中'
+            );
             
-            console.log('有效的借用中記錄:', activeBookings);
+            console.log('借用中記錄:', activeBookings);
             
             if (activeBookings.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">目前沒有借用記錄</p>';
-                console.log('沒有借用中的記錄，顯示空狀態');
                 return;
             }
 
             let html = '';
             activeBookings.forEach((record, displayIndex) => {
-                // 找到原始記錄的索引（用於歸還操作）
                 const originalIndex = allBookings.findIndex(booking => booking.id === record.id);
-                console.log(`記錄 ${displayIndex}: 原始索引 ${originalIndex}`, record);
                 
                 html += `
                     <div class="record-item" style="border: 2px solid #ddd; cursor: pointer; user-select: none;" 
@@ -618,7 +522,8 @@
                             <div>👤 ${record.borrower} (${record.department || '未填寫'})</div>
                             <div>📞 分機: ${record.extension || '未填寫'}</div>
                             <div>📅 ${record.date || '未填寫'} ⏰ ${record.startTime || '未填寫'}</div>
-                            <div>🕐 申請時間: ${record.createTime || record.bookingTime || '未記錄'}</div>
+                            <div>🕐 申請時間: ${record.createTime || '未記錄'}</div>
+                            ${record.notes ? `<div style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #007bff;">📝 備註: ${record.notes}</div>` : ''}
                         </div>
                         <div style="margin-top: 12px;">
                             <span class="status status-active">✅ ${record.status}</span>
@@ -651,12 +556,12 @@
                 });
             });
             
-            console.log('記錄列表更新完成，已添加雙擊事件到', recordItems.length, '個記錄');
+            console.log('記錄列表更新完成');
         }
 
-        // 處理歸還 - 簡化版本
+        // 處理歸還
         function processReturn(index) {
-            console.log('=== 處理歸還，索引:', index, '===');
+            console.log('處理歸還，索引:', index);
             
             const record = allBookings[index];
             if (!record || record.status !== '借用中') {
@@ -666,7 +571,7 @@
             
             console.log('準備歸還:', record.roomName, record.borrower);
             
-            // 直接處理歸還，不使用 confirm（避開沙盒限制）
+            // 更新記錄狀態
             allBookings[index].status = '已歸還';
             allBookings[index].returnTime = new Date().toLocaleString();
             
@@ -676,9 +581,7 @@
             saveBookings();
             updateRecordsList();
             
-            console.log('歸還處理完成');
-            
-            // 顯示成功訊息（在記錄區域顯示，不用 alert）
+            // 顯示成功訊息
             showSuccessMessage(`【${record.roomName}】鑰匙已成功歸還！借用人：${record.borrower}`);
         }
 
@@ -708,97 +611,51 @@
             }, 3000);
         }
 
-        // 測試歸還功能 - 直接處理第一筆借用中的記錄
-        function testReturn() {
-            console.log('=== 測試歸還功能 ===');
-            console.log('所有記錄:', allBookings);
-            
-            // 找到第一筆借用中的記錄
-            const activeIndex = allBookings.findIndex(booking => booking.status === '借用中');
-            
-            if (activeIndex === -1) {
-                alert('沒有借用中的記錄可以歸還！');
+        // 匯出資料
+        function exportData() {
+            if (allBookings.length === 0) {
+                alert('目前沒有資料可以匯出！');
                 return;
             }
+
+            const activeCount = allBookings.filter(booking => booking.status === '借用中').length;
+            const returnedCount = allBookings.filter(booking => booking.status === '已歸還').length;
+
+            const exportData = {
+                exportTime: new Date().toLocaleString(),
+                summary: {
+                    totalRecords: allBookings.length,
+                    activeRecords: activeCount,
+                    returnedRecords: returnedCount
+                },
+                data: allBookings
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileName = `鑰匙借用記錄_${new Date().toISOString().split('T')[0]}.json`;
             
-            const record = allBookings[activeIndex];
-            console.log('找到借用中的記錄，索引:', activeIndex, '記錄:', record);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileName);
+            linkElement.style.display = 'none';
             
-            if (confirm(`測試歸還功能\n\n確定要歸還【${record.roomName}】的鑰匙嗎？\n借用人：${record.borrower}`)) {
-                console.log('用戶確認測試歸還');
-                
-                // 更新記錄狀態
-                allBookings[activeIndex].status = '已歸還';
-                allBookings[activeIndex].returnTime = new Date().toLocaleString();
-                
-                console.log('記錄已更新:', allBookings[activeIndex]);
-                
-                // 儲存並更新顯示
-                saveBookings();
-                updateRecordsDisplay();
-                
-                alert(`測試成功！\n\n【${record.roomName}】鑰匙已歸還\n借用人：${record.borrower}`);
-                console.log('測試歸還完成');
-            } else {
-                console.log('用戶取消測試');
-            }
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+            
+            alert(`資料匯出成功！\n檔案：${exportFileName}\n\n📊 統計資料：\n• 總記錄數：${allBookings.length} 筆\n• 借用中：${activeCount} 筆\n• 已歸還：${returnedCount} 筆`);
         }
 
-        // 歸還鑰匙 - 增加調試信息
-        function returnKey(index) {
-            console.log('歸還函數被調用，索引:', index);
-            console.log('所有記錄:', allBookings);
-            console.log('目標記錄:', allBookings[index]);
-            
-            const record = allBookings[index];
-            if (!record) {
-                console.error('找不到記錄，索引:', index);
-                alert('找不到該記錄！');
-                return;
-            }
-            
-            if (record.status !== '借用中') {
-                console.log('記錄狀態不是借用中:', record.status);
-                alert('該記錄不是借用中狀態！');
-                return;
-            }
-            
-            console.log('準備歸還:', record.roomName, record.borrower);
-            
-            if (confirm(`確定要歸還【${record.roomName}】的鑰匙嗎？\n借用人：${record.borrower}`)) {
-                console.log('用戶確認歸還');
-                
-                // 更新記錄狀態為已歸還
-                allBookings[index].status = '已歸還';
-                allBookings[index].returnTime = new Date().toLocaleString();
-                
-                console.log('記錄已更新:', allBookings[index]);
-                
-                // 儲存到本地
-                saveBookings();
-                console.log('資料已儲存');
-                
-                // 更新顯示
-                updateRecordsList();
-                console.log('列表已更新');
-                
-                alert(`【${record.roomName}】鑰匙歸還成功！\n借用人：${record.borrower}`);
-            } else {
-                console.log('用戶取消歸還');
-            }
-        }
-
-        // 清除所有記錄 - 加上確認和調試
+        // 清除所有記錄
         function clearAllData() {
-            console.log('準備清除所有記錄，目前記錄數:', allBookings.length);
-            if (confirm('確定要清除所有記錄嗎？此操作無法復原！\n\n這將會清除所有借用和歸還記錄。')) {
+            console.log('準備清除所有記錄');
+            if (confirm('確定要清除所有記錄嗎？此操作無法復原！')) {
                 allBookings = [];
                 saveBookings();
                 updateRecordsList();
                 console.log('所有記錄已清除');
                 alert('所有記錄已清除！');
-            } else {
-                console.log('用戶取消清除操作');
             }
         }
     </script>
